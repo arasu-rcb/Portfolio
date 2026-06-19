@@ -6,7 +6,7 @@ import Education from "./sections/Education"
 import Experience from "./sections/Experience"
 import Project from "./sections/Project"
 import Skills from "./sections/Skills"
-import Contact from "./sections/contact"
+import Contact from "./sections/Contact"
 
 import AdminLogin from "./pages/AdminLogin";
 import OtpVerification from "./pages/OtpVerification";
