@@ -119,7 +119,7 @@ const ResumeEditor = () => {
           </div>
           {resumeUrl && (
             <a
-              href={`http://localhost:5001${resumeUrl}`}
+              href={`https://arasuportfolio.onrender.com${resumeUrl}`}
               target="_blank"
               rel="noreferrer"
               className="text-xs text-yellow-400 dark:text-blue-600 hover:text-yellow-355 dark:hover:text-blue-700 font-bold transition"

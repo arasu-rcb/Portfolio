@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create Axios instance
 const API = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: "https://arasuportfolio.onrender.com/api",
   timeout: 15000,
 });
 

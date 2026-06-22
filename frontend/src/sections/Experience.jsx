@@ -49,23 +49,24 @@ const Experience = () => {
   const [activeCertificate, setActiveCertificate] = useState("");
 
   useEffect(() => {
-    // Fetch experiences
-    fetch("http://localhost:5001/api/experience")
-      .then((res) => {
-        if (!res.ok) throw new Error("API not active");
-        return res.json();
-      })
-      .then((data) => {
+    // Fetch experiences using full backend URL
+    const controller = new AbortController();
+    const fetchExperience = async () => {
+      try {
+        const response = await fetch("https://arasuportfolio.onrender.com/api/experience", { signal: controller.signal });
+        if (!response.ok) throw new Error("API not active");
+        const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           setExpList(data);
         } else {
           setExpList(staticExperiences);
         }
-      })
-      .catch(() => {
-        console.log("Using static Experience fallback data.");
+      } catch (error) {
+        console.log("Using static Experience fallback data.", error);
         setExpList(staticExperiences);
-      });
+      }
+    };
+    fetchExperience();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -78,6 +79,7 @@ const Experience = () => {
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => controller.abort();
   }, []);
 
   // Open Certificate Modal
@@ -171,7 +173,7 @@ const ExperienceItem = ({
   onView
 }) => (
   <div
-    className={`relative pl-14 transition-all duration-700 ease-out ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+    className={`relative pl-10 sm:pl-14 transition-all duration-700 ease-out ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
       }`}
   >
 
@@ -186,16 +188,16 @@ const ExperienceItem = ({
     </span>
 
     {/* Content */}
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-gray-700 dark:border-gray-300 rounded-2xl hover:border-yellow-400 dark:hover:border-blue-500 hover:bg-gray-800 dark:hover:bg-gray-100 transition px-6 py-5">
+    <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6 border border-gray-700 dark:border-gray-300 rounded-2xl hover:border-yellow-400 dark:hover:border-blue-500 hover:bg-gray-800 dark:hover:bg-gray-100 transition px-4 sm:px-6 py-5">
 
       {/* Left Content */}
-      <div className="space-y-1">
+      <div className="space-y-2 flex-1">
 
-        <h4 className="text-xl font-semibold text-white dark:text-gray-900">
+        <h4 className="text-lg sm:text-xl font-semibold text-white dark:text-gray-900 break-words">
           {title}
         </h4>
 
-        <p className="text-gray-400 dark:text-gray-600">
+        <p className="text-gray-400 dark:text-gray-600 text-sm sm:text-base break-words">
           {company}
         </p>
 
@@ -213,7 +215,7 @@ const ExperienceItem = ({
       {onView && (
         <button
           onClick={onView}
-          className="flex items-center gap-2 bg-yellow-400 dark:bg-blue-400 text-gray-900 dark:text-white px-5 py-2 rounded-full font-medium hover:scale-105 transition shadow-md"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-yellow-400 dark:bg-blue-400 text-gray-900 dark:text-white px-5 py-2 rounded-full font-medium hover:scale-105 transition shadow-md whitespace-nowrap"
         >
           <FaFileAlt />
           Certificate

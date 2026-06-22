@@ -22,23 +22,25 @@ const Education = () => {
   const [educationList, setEducationList] = useState([]);
 
   useEffect(() => {
-    // Fetch education details
-    fetch("http://localhost:5001/api/education")
-      .then((res) => {
-        if (!res.ok) throw new Error("API not active");
-        return res.json();
-      })
-      .then((data) => {
+    // Fetch education details using full backend URL
+    const controller = new AbortController();
+    const fetchEducation = async () => {
+      try {
+        const response = await fetch("https://arasuportfolio.onrender.com/api/education", { signal: controller.signal });
+        if (!response.ok) throw new Error("API not active");
+        const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           setEducationList(data);
         } else {
           setEducationList(staticEducation);
         }
-      })
-      .catch(() => {
-        console.log("Using static Education fallback data.");
+      } catch (error) {
+        console.log("Using static Education fallback data.", error);
         setEducationList(staticEducation);
-      });
+      }
+    };
+    fetchEducation();
+    return () => controller.abort();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -94,7 +96,7 @@ const Education = () => {
 
 const EducationItem = ({ icon, title, institute, year, score, visible }) => (
   <div
-    className={`relative pl-14 transition-all duration-700 ease-out ${
+    className={`relative pl-10 sm:pl-14 transition-all duration-700 ease-out ${
       visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
     }`}
   >
@@ -108,21 +110,21 @@ const EducationItem = ({ icon, title, institute, year, score, visible }) => (
 
     {/* Content */}
     <div className="border border-gray-700 dark:border-gray-300 rounded-2xl hover:border-yellow-400 dark:hover:border-blue-500 hover:bg-gray-800 dark:hover:bg-gray-100 transition">
-      <div className="px-6 py-4 space-y-1">
+      <div className="px-4 sm:px-6 py-4 space-y-2">
         
-        <h4 className="text-xl font-semibold text-white dark:text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
+        <h4 className="text-lg sm:text-xl font-semibold text-white dark:text-gray-900 break-words">
           {title}
         </h4>
 
-        <p className="text-gray-400 dark:text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis">
+        <p className="text-gray-400 dark:text-gray-600 text-sm sm:text-base break-words">
           {institute}
         </p>
 
-        <p className="text-sm text-gray-300 dark:text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+        <p className="text-sm text-gray-300 dark:text-gray-700">
           {year}
         </p>
 
-        <p className="text-sm text-gray-300 dark:text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+        <p className="text-sm text-gray-300 dark:text-gray-700">
           {score}
         </p>
 

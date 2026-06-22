@@ -64,7 +64,7 @@ const ExperienceEditor = () => {
       type: exp.type || "Remote"
     });
     setCertificateFile(null);
-    setCertificatePreview(exp.certificateUrl ? `http://localhost:5001${exp.certificateUrl}` : "");
+    setCertificatePreview(exp.certificateUrl ? `https://arasuportfolio.onrender.com${exp.certificateUrl}` : "");
     setShowModal(true);
   };
 
@@ -209,7 +209,7 @@ const ExperienceEditor = () => {
               <div className="flex items-center gap-3 self-end md:self-auto">
                 {exp.certificateUrl && (
                   <a
-                    href={`http://localhost:5001${exp.certificateUrl}`}
+                    href={`https://arasuportfolio.onrender.com${exp.certificateUrl}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 text-xs bg-gray-950 dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-gray-200 border border-gray-800 dark:border-gray-200 hover:border-gray-700 dark:hover:border-gray-300 text-gray-300 dark:text-gray-700 font-semibold py-2 px-4 rounded-xl transition"

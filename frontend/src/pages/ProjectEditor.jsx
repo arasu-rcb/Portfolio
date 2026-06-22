@@ -89,7 +89,7 @@ const ProjectEditor = () => {
     });
     setImageFile(null);
     // Prefix relative upload path with base URL
-    setImagePreview(project.image ? `http://localhost:5001${project.image}` : "");
+        setImagePreview(project.image ? `https://arasuportfolio.onrender.com${project.image}` : "");
     setShowModal(true);
   };
 
@@ -228,7 +228,7 @@ const ProjectEditor = () => {
             >
               <div>
                 <img
-                  src={`http://localhost:5001${project.image}`}
+                  src={`https://arasuportfolio.onrender.com${project.image}`}
                   alt={project.title}
                   className="w-full h-40 object-contain bg-white dark:bg-gray-50 border-b border-gray-800 dark:border-gray-200"
                 />
