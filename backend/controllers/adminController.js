@@ -69,11 +69,11 @@ export const seedAdmin = async (req, res) => {
 
     // Hash default password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("admin123", salt);
+    const hashedPassword = await bcrypt.hash("Arasu@1406", salt);
 
     const defaultAdmin = new Admin({
       username: "admin",
-      email: "admin@portfolio.com",
+      email: "arasumurali014@gmail.com",
       password: hashedPassword,
     });
 
@@ -81,8 +81,8 @@ export const seedAdmin = async (req, res) => {
     return res.status(201).json({
       message: "Default admin account seeded successfully",
       credentials: {
-        email: "admin@portfolio.com",
-        password: "admin123"
+        email: "arasumurali014@gmail.com",
+        password: "Arasu@1406"
       }
     });
   } catch (error) {

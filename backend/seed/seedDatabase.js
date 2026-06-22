@@ -62,10 +62,10 @@ const runSeed = async () => {
     const adminExists = await Admin.findOne();
     if (!adminExists) {
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("admin123", salt);
+      const hashedPassword = await bcrypt.hash("Arasu@1406", salt);
       const defaultAdmin = new Admin({
         username: "admin",
-        email: "admin@portfolio.com",
+        email: "arasumurali014@gmail.com",
         password: hashedPassword,
       });
       await defaultAdmin.save();
