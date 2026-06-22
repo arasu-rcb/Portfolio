@@ -43,6 +43,7 @@ export const loginAdmin = async (req, res) => {
       const recipient = process.env.ADMIN_EMAIL || admin.email;
       const mailResult = await sendOtpMail(recipient, otpCode);
       if (!mailResult.success) {
+        console.error("[Admin Controller] sendOtpMail failed:", mailResult.message);
         return res.status(500).json({ message: `Failed to send OTP email: ${mailResult.message}` });
       }
 

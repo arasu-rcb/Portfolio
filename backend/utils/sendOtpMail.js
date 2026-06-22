@@ -32,11 +32,9 @@ export const sendOtpMail = async (toEmail, otpCode) => {
     return { success: false, message };
   }
 
+  const MAIL_TIMEOUT = 10000;
   const buildTransport = (transportPort) => {
     const transport = {
-      host,
-      port: transportPort,
-      secure: transportPort === 465,
       auth: {
         user,
         pass
@@ -44,9 +42,11 @@ export const sendOtpMail = async (toEmail, otpCode) => {
       tls: {
         rejectUnauthorized: false
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000
+      connectionTimeout: MAIL_TIMEOUT,
+      greetingTimeout: MAIL_TIMEOUT,
+      socketTimeout: MAIL_TIMEOUT,
+      logger: false,
+      debug: false
     };
 
     if (host.includes("gmail.com")) {
@@ -56,6 +56,10 @@ export const sendOtpMail = async (toEmail, otpCode) => {
         transport.secure = false;
         transport.requireTLS = true;
       }
+    } else {
+      transport.host = host;
+      transport.port = transportPort;
+      transport.secure = transportPort === 465;
     }
 
     return transport;
@@ -90,10 +94,21 @@ export const sendOtpMail = async (toEmail, otpCode) => {
 
   const trySend = async (transportSettings) => {
     const transporter = nodemailer.createTransport(transportSettings);
-    await transporter.verify();
-    console.log("[OTP Mail] SMTP connection successful");
-    const info = await transporter.sendMail(mailOptions);
-    return info;
+    try {
+      await transporter.verify();
+      console.log("[OTP Mail] SMTP connection successful");
+    } catch (verifyError) {
+      console.error("[OTP Mail] transporter.verify() failed:", verifyError);
+      throw verifyError;
+    }
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (sendError) {
+      console.error("[OTP Mail] transporter.sendMail() failed:", sendError);
+      throw sendError;
+    }
   };
 
   try {
