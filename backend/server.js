@@ -78,6 +78,7 @@ app.get("/health", async (req, res) => {
     
     return res.status(200).json({
       status: "ok",
+      resendConfigured: !!process.env.RESEND_API_KEY,
       message: "SMTP connection successful",
       smtp: { host, port, secure: port === 465, requireTLS: port === 587 },
       adminEmail
@@ -85,12 +86,12 @@ app.get("/health", async (req, res) => {
   } catch (error) {
     console.error("[Health] SMTP verification failed:", error.message);
     console.error("[Health] Error code:", error.code);
-    return res.status(500).json({
+    return res.status(200).json({
       status: "error",
+      resendConfigured: !!process.env.RESEND_API_KEY,
       message: "SMTP verification failed",
       error: error.message,
-      code: error.code,
-      stack: error.stack
+      code: error.code
     });
   }
 });
