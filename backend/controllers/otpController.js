@@ -153,9 +153,9 @@ export const requestPasswordReset = async (req, res) => {
     });
     await otpDocument.save();
 
-    const mailSent = await sendOtpMail(admin.email, resetOtp);
-    if (!mailSent) {
-      return res.status(500).json({ success: false, message: "Failed to send OTP email" });
+    const mailResult = await sendOtpMail(admin.email, resetOtp);
+    if (!mailResult.success) {
+      return res.status(500).json({ success: false, message: `Failed to send OTP email: ${mailResult.message}` });
     }
 
     return res.status(200).json({

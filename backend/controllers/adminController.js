@@ -40,9 +40,9 @@ export const loginAdmin = async (req, res) => {
       await otpDocument.save();
 
       // Send the OTP email to the administrator
-      const mailSent = await sendOtpMail(admin.email, otpCode);
-      if (!mailSent) {
-        return res.status(500).json({ message: "Failed to send OTP email" });
+      const mailResult = await sendOtpMail(admin.email, otpCode);
+      if (!mailResult.success) {
+        return res.status(500).json({ message: `Failed to send OTP email: ${mailResult.message}` });
       }
 
       return res.status(200).json({

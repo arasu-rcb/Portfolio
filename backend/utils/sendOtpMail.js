@@ -14,15 +14,15 @@ export const sendOtpMail = async (toEmail, otpCode) => {
     const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
 
     if (!user || !pass) {
-      console.error("[OTP Mail] Email credentials are not configured in environment variables.");
-      return false;
+      const message = "Email credentials are not configured in environment variables.";
+      console.error("[OTP Mail]", message);
+      return { success: false, message };
     }
 
     const transporter = nodemailer.createTransport({
-      service: host.includes("gmail") ? "gmail" : undefined,
       host,
       port,
-      secure: port === 465, // true for 465, false for other ports
+      secure: port === 465,
       auth: {
         user,
         pass
@@ -32,9 +32,7 @@ export const sendOtpMail = async (toEmail, otpCode) => {
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
-      socketTimeout: 10000,
-      logger: false,
-      debug: false
+      socketTimeout: 10000
     });
 
     const mailOptions = {
@@ -66,9 +64,10 @@ export const sendOtpMail = async (toEmail, otpCode) => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`[OTP Mail] Verification code sent to ${toEmail}. Message ID: ${info.messageId}`);
-    return true;
+    return { success: true };
   } catch (error) {
-    console.error("[OTP Mail] Failed to send email:", error.message);
-    return false;
+    const message = error?.message || "Unknown SMTP error";
+    console.error("[OTP Mail] Failed to send email:", message);
+    return { success: false, message };
   }
 };
