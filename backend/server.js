@@ -40,7 +40,7 @@ app.get("/", (req, res) => {
 app.get("/health", async (req, res) => {
   try {
     const host = process.env.SMTP_HOST || "smtp.gmail.com";
-    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const port = parseInt(process.env.SMTP_PORT || "587", 10);
     const user = process.env.EMAIL_USER || process.env.SMTP_USER;
     const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
@@ -58,23 +58,32 @@ app.get("/health", async (req, res) => {
       host,
       port,
       secure: port === 465,
+      requireTLS: port === 587,
       auth: { user, pass },
-      tls: { rejectUnauthorized: false }
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
     });
 
+    console.log("[Health] Verifying SMTP connection to", host, 'port', port);
     await transporter.verify();
+    console.log("[Health] SMTP verification successful");
+    
     return res.status(200).json({
       status: "ok",
       message: "SMTP connection successful",
-      smtp: { host, port, secure: port === 465 },
+      smtp: { host, port, secure: port === 465, requireTLS: port === 587 },
       adminEmail
     });
   } catch (error) {
-    console.error("[Health] SMTP verification failed:", error);
+    console.error("[Health] SMTP verification failed:", error.message);
+    console.error("[Health] Error code:", error.code);
     return res.status(500).json({
       status: "error",
       message: "SMTP verification failed",
       error: error.message,
+      code: error.code,
       stack: error.stack
     });
   }

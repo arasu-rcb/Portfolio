@@ -113,9 +113,9 @@ export const resendOtp = async (req, res) => {
     await otpDocument.save();
 
     // Send via email
-    const mailSent = await sendOtpMail(admin.email, newOtpCode);
-    if (!mailSent) {
-      return res.status(500).json({ success: false, message: "Failed to send OTP email" });
+    const mailResult = await sendOtpMail(admin.email, newOtpCode);
+    if (!mailResult.success) {
+      return res.status(500).json({ success: false, message: `Failed to send OTP email: ${mailResult.message}` });
     }
 
     return res.status(200).json({

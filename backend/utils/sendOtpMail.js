@@ -8,7 +8,7 @@ import nodemailer from "nodemailer";
  */
 export const sendOtpMail = async (toEmail, otpCode) => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = parseInt(process.env.SMTP_PORT || "465", 10);
+  const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const user = process.env.EMAIL_USER || process.env.SMTP_USER;
   const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
   const destinationEmail = process.env.ADMIN_EMAIL || toEmail;
@@ -18,23 +18,21 @@ export const sendOtpMail = async (toEmail, otpCode) => {
     port,
     userConfigured: !!user,
     passConfigured: !!pass,
-    destinationEmail,
-    adminEmailEnv: !!process.env.ADMIN_EMAIL,
-    emailUserEnv: !!process.env.EMAIL_USER,
-    smtpUserEnv: !!process.env.SMTP_USER,
-    emailPassEnv: !!process.env.EMAIL_PASS,
-    smtpPassEnv: !!process.env.SMTP_PASS
+    destinationEmail
   });
 
   if (!user || !pass) {
-    const message = "Email credentials are not configured in environment variables.";
+    const message = "Email credentials (EMAIL_USER/SMTP_USER or EMAIL_PASS/SMTP_PASS) are not configured.";
     console.error("[OTP Mail]", message);
     return { success: false, message };
   }
 
-  const MAIL_TIMEOUT = 10000;
   const buildTransport = (transportPort) => {
     const transport = {
+      host,
+      port: transportPort,
+      secure: transportPort === 465,
+      requireTLS: transportPort === 587,
       auth: {
         user,
         pass
@@ -42,25 +40,12 @@ export const sendOtpMail = async (toEmail, otpCode) => {
       tls: {
         rejectUnauthorized: false
       },
-      connectionTimeout: MAIL_TIMEOUT,
-      greetingTimeout: MAIL_TIMEOUT,
-      socketTimeout: MAIL_TIMEOUT,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
       logger: false,
       debug: false
     };
-
-    if (host.includes("gmail.com")) {
-      transport.service = "gmail";
-      transport.secure = transportPort === 465;
-      if (transportPort === 587) {
-        transport.secure = false;
-        transport.requireTLS = true;
-      }
-    } else {
-      transport.host = host;
-      transport.port = transportPort;
-      transport.secure = transportPort === 465;
-    }
 
     return transport;
   };
@@ -94,42 +79,54 @@ export const sendOtpMail = async (toEmail, otpCode) => {
 
   const trySend = async (transportSettings) => {
     const transporter = nodemailer.createTransport(transportSettings);
+    
     try {
+      console.log("[OTP Mail] Verifying SMTP connection...");
       await transporter.verify();
       console.log("[OTP Mail] SMTP connection successful");
     } catch (verifyError) {
-      console.error("[OTP Mail] transporter.verify() failed:", verifyError);
+      console.error("[OTP Mail] SMTP verify failed:", verifyError.message);
+      console.error("[OTP Mail] Verify error code:", verifyError.code);
+      console.error("[OTP Mail] Verify error stack:", verifyError.stack);
       throw verifyError;
     }
 
     try {
+      console.log("[OTP Mail] Sending mail to:", destinationEmail);
       const info = await transporter.sendMail(mailOptions);
+      console.log("[OTP Mail] Mail sent successfully, Message ID:", info.messageId);
       return info;
     } catch (sendError) {
-      console.error("[OTP Mail] transporter.sendMail() failed:", sendError);
+      console.error("[OTP Mail] Send failed:", sendError.message);
+      console.error("[OTP Mail] Send error code:", sendError.code);
+      console.error("[OTP Mail] Send error stack:", sendError.stack);
       throw sendError;
     }
   };
 
   try {
+    console.log("[OTP Mail] Attempting connection on port", port);
     const info = await trySend(buildTransport(port));
     console.log(`[OTP Mail] Verification code sent to ${destinationEmail}. Message ID: ${info.messageId}`);
     return { success: true };
   } catch (primaryError) {
-    console.error("[OTP Mail] Primary SMTP error:", primaryError);
-    console.error("[OTP Mail] Primary SMTP stack:", primaryError.stack);
+    console.error("[OTP Mail] Primary SMTP error:", primaryError.message);
     const primaryMessage = primaryError?.message || "Unknown SMTP error";
-    console.warn("[OTP Mail] Primary SMTP send failed:", primaryMessage);
 
-    if (host.includes("gmail.com") && port === 465) {
+    // Fallback to alternate port only for Gmail
+    if (host.includes("gmail.com") && port === 587) {
+      console.log("[OTP Mail] Fallback: Attempting port 465...");
       try {
-        const fallbackInfo = await trySend(buildTransport(587));
-        console.log(`[OTP Mail] Fallback via port 587 succeeded. Message ID: ${fallbackInfo.messageId}`);
+        const fallbackTransport = buildTransport(465);
+        fallbackTransport.secure = true;
+        fallbackTransport.requireTLS = false;
+        const fallbackInfo = await trySend(fallbackTransport);
+        console.log(`[OTP Mail] Fallback via port 465 succeeded. Message ID: ${fallbackInfo.messageId}`);
         return { success: true };
       } catch (fallbackError) {
-        console.error("[OTP Mail] Gmail fallback error:", fallbackError);
-        const fallbackMessage = fallbackError?.message || "Unknown SMTP fallback error";
-        return { success: false, message: `Primary: ${primaryMessage}; Fallback: ${fallbackMessage}` };
+        console.error("[OTP Mail] Fallback port 465 failed:", fallbackError.message);
+        const fallbackMessage = fallbackError?.message || "Port 465 also failed";
+        return { success: false, message: `Port 587: ${primaryMessage}; Port 465: ${fallbackMessage}` };
       }
     }
 
