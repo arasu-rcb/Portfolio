@@ -27,6 +27,41 @@ export const saveMessage = async (req, res) => {
       EMAIL_TO
     } = process.env;
 
+    // 1. Try Resend HTTP API first if key exists (avoids SMTP port block on Render)
+    if (process.env.RESEND_API_KEY) {
+      try {
+        console.log("[Contact Mail] Resend API Key detected, sending via HTTP API...");
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: "Portfolio Message <onboarding@resend.dev>",
+            to: EMAIL_TO || "arasumurali014@gmail.com",
+            subject: `New contact message from ${name}`,
+            html: `<p>You received a new message from your portfolio site:</p>
+                   <p><strong>Name:</strong> ${name}</p>
+                   <p><strong>Email:</strong> ${email}</p>
+                   <p><strong>Phone:</strong> ${phone}</p>
+                   <p><strong>Message:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log("[Contact Mail] Sent successfully via Resend API, ID:", data.id);
+          return res.status(201).json({ message: "Message sent and email delivered" });
+        } else {
+          const errText = await res.text();
+          console.error("[Contact Mail] Resend API error:", errText);
+        }
+      } catch (apiError) {
+        console.error("[Contact Mail] Resend API call failed:", apiError.message);
+      }
+    }
+
     if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !EMAIL_TO) {
       console.warn("[Contact] SMTP not configured - skipping email send");
       return res.status(201).json({ message: "Message saved (email not sent)" });

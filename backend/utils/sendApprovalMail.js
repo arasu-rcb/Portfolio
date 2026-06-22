@@ -7,33 +7,6 @@ import nodemailer from "nodemailer";
  */
 export const sendApprovalMail = async (pending) => {
   try {
-    const host = process.env.SMTP_HOST || "smtp.gmail.com";
-    const port = parseInt(process.env.SMTP_PORT || "465", 10);
-    const user = process.env.EMAIL_USER || process.env.SMTP_USER;
-    const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
-
-    if (!user || !pass) {
-      console.error("[Approval Mail] SMTP credentials not set up.");
-      return false;
-    }
-
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: {
-        user,
-        pass
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000
-    });
-
-    console.log("[Approval Mail] Verifying SMTP connection to", host, "port", port);
-    await transporter.verify();
-    console.log("[Approval Mail] SMTP connection successful");
-
     const backendUrl = process.env.BACKEND_URL || "https://arasuportfolio.onrender.com";
     const approveUrl = `${backendUrl}/api/admin/approve-update?token=${pending.token}`;
     const rejectUrl = `${backendUrl}/api/admin/reject-update?token=${pending.token}`;
@@ -62,50 +35,108 @@ export const sendApprovalMail = async (pending) => {
       `;
     }
 
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <h2 style="color: #2b6cb0; text-align: center; border-bottom: 2px solid #ebf8ff; padding-bottom: 15px; margin-top: 0;">Portfolio Update Request</h2>
+        
+        <p style="color: #4a5568; font-size: 15px; line-height: 1.6; text-align: center;">
+          An administrative update is requested for the <strong>${pending.modelName}</strong> collection.
+        </p>
+
+        <div style="background-color: #f7fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #edf2f7;">
+          <p style="margin: 0 0 10px 0; font-size: 14px; color: #718096;"><strong>Action Type:</strong> <span style="background-color: #e2e8f0; color: #4a5568; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">${pending.action}</span></p>
+          <p style="margin: 0; font-size: 14px; color: #718096;"><strong>Request Time:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+
+        <h3 style="color: #4a5568; font-size: 16px; margin-bottom: 10px;">Proposed Details:</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
+          <thead>
+            <tr style="background-color: #edf2f7;">
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e0; color: #4a5568;">Field</th>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e0; color: #4a5568;">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${dataRows || '<tr><td colspan="2" style="padding: 15px; text-align: center; color: #a0aec0; font-style: italic;">No specific text fields modified</td></tr>'}
+          </tbody>
+        </table>
+
+        <div style="text-align: center; margin: 30px 0 15px 0;">
+          <a href="${approveUrl}" style="display: inline-block; background-color: #38a169; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; margin: 0 10px; box-shadow: 0 4px 6px rgba(56, 161, 105, 0.2);">
+            Approve & Publish
+          </a>
+          <a href="${rejectUrl}" style="display: inline-block; background-color: #e53e3e; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; margin: 0 10px; box-shadow: 0 4px 6px rgba(229, 62, 62, 0.2);">
+            Reject & Discard
+          </a>
+        </div>
+
+        <p style="color: #a0aec0; font-size: 12px; text-align: center; margin-top: 30px; border-top: 1px solid #edf2f7; padding-top: 15px;">
+          Portfolio Administration System • Secure Email Workflow
+        </p>
+      </div>
+    `;
+
+    // 1. Try Resend HTTP API first if key exists (avoids SMTP port block on Render)
+    if (process.env.RESEND_API_KEY) {
+      try {
+        console.log("[Approval Mail] Resend API Key detected, sending via HTTP API...");
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: "Portfolio Control <onboarding@resend.dev>",
+            to: "arasumurali014@gmail.com",
+            subject: `[Approval Required] Proposed Portfolio Change - ${pending.modelName}`,
+            html: htmlContent
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log("[Approval Mail] Sent successfully via Resend API, ID:", data.id);
+          return true;
+        } else {
+          const errText = await res.text();
+          console.error("[Approval Mail] Resend API error:", errText);
+        }
+      } catch (apiError) {
+        console.error("[Approval Mail] Resend API call failed:", apiError.message);
+      }
+    }
+
+    // 2. Fall back to SMTP Nodemailer
+    const host = process.env.SMTP_HOST || "smtp.gmail.com";
+    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const user = process.env.EMAIL_USER || process.env.SMTP_USER;
+    const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+
+    if (!user || !pass) {
+      console.error("[Approval Mail] SMTP credentials not set up.");
+      return false;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
+    });
+
+    console.log("[Approval Mail] Verifying SMTP connection to", host, "port", port);
+    await transporter.verify();
+    console.log("[Approval Mail] SMTP connection successful");
+
     const mailOptions = {
       from: `"Portfolio Admin Control" <${user}>`,
       to: "arasumurali014@gmail.com",
       subject: `[Approval Required] Proposed Portfolio Change - ${pending.modelName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <h2 style="color: #2b6cb0; text-align: center; border-bottom: 2px solid #ebf8ff; padding-bottom: 15px; margin-top: 0;">Portfolio Update Request</h2>
-          
-          <p style="color: #4a5568; font-size: 15px; line-height: 1.6; text-align: center;">
-            An administrative update is requested for the <strong>${pending.modelName}</strong> collection.
-          </p>
-
-          <div style="background-color: #f7fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #edf2f7;">
-            <p style="margin: 0 0 10px 0; font-size: 14px; color: #718096;"><strong>Action Type:</strong> <span style="background-color: #e2e8f0; color: #4a5568; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">${pending.action}</span></p>
-            <p style="margin: 0; font-size: 14px; color: #718096;"><strong>Request Time:</strong> ${new Date().toLocaleString()}</p>
-          </div>
-
-          <h3 style="color: #4a5568; font-size: 16px; margin-bottom: 10px;">Proposed Details:</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
-            <thead>
-              <tr style="background-color: #edf2f7;">
-                <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e0; color: #4a5568;">Field</th>
-                <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e0; color: #4a5568;">Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${dataRows || '<tr><td colspan="2" style="padding: 15px; text-align: center; color: #a0aec0; font-style: italic;">No specific text fields modified</td></tr>'}
-            </tbody>
-          </table>
-
-          <div style="text-align: center; margin: 30px 0 15px 0;">
-            <a href="${approveUrl}" style="display: inline-block; background-color: #38a169; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; margin: 0 10px; box-shadow: 0 4px 6px rgba(56, 161, 105, 0.2);">
-              Approve & Publish
-            </a>
-            <a href="${rejectUrl}" style="display: inline-block; background-color: #e53e3e; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; margin: 0 10px; box-shadow: 0 4px 6px rgba(229, 62, 62, 0.2);">
-              Reject & Discard
-            </a>
-          </div>
-
-          <p style="color: #a0aec0; font-size: 12px; text-align: center; margin-top: 30px; border-top: 1px solid #edf2f7; padding-top: 15px;">
-            Portfolio Administration System • Secure Email Workflow
-          </p>
-        </div>
-      `
+      html: htmlContent
     };
 
     const info = await transporter.sendMail(mailOptions);
