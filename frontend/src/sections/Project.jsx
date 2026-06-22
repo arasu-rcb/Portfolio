@@ -86,10 +86,20 @@ const Project = () => {
           observer.disconnect();
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.05 }
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
+
+    // Fail-safe: ensure visibility after 1.5 seconds even if scroll observer fails
+    const safetyTimer = setTimeout(() => {
+      setVisible(true);
+    }, 1500);
+
+    return () => {
+      clearTimeout(safetyTimer);
+      observer.disconnect();
+    };
   }, []);
 
   return (

@@ -45,10 +45,6 @@ export const saveMessage = async (req, res) => {
       socketTimeout: 10000
     });
 
-    console.log("[Contact Mail] Verifying SMTP connection to", SMTP_HOST, "port", SMTP_PORT);
-    await transporter.verify();
-    console.log("SMTP connection successful");
-
     const mailOptions = {
       from: `${name} <${SMTP_USER}>`,
       to: EMAIL_TO,
@@ -63,12 +59,16 @@ export const saveMessage = async (req, res) => {
 
     // Send email (but don't fail the whole request if email fails)
     try {
+      console.log("[Contact Mail] Verifying SMTP connection to", SMTP_HOST, "port", SMTP_PORT);
+      await transporter.verify();
+      console.log("SMTP connection successful");
+
       const info = await transporter.sendMail(mailOptions);
       console.log(`[Contact] Email sent: messageId=${info.messageId}`);
       console.log("SENDED: contact message processed and email sent (or queued)");
       return res.status(201).json({ message: "Message sent and email delivered" });
     } catch (mailError) {
-      console.error("[Contact] Email send failed:", mailError);
+      console.error("[Contact] Email send/verify failed:", mailError);
       console.log("SENDED: contact message processed (email failed)");
       // return success to frontend for demo/workflow purposes
       return res.status(201).json({ message: "Message saved (email failed)" });
