@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import nodemailer from "nodemailer";
 import connectDB from "./config/db.js";
 
 import contactRoutes from "./routes/contactRoutes.js";
@@ -34,6 +35,49 @@ app.use("/api/education", educationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Portfolio Backend is Running");
+});
+
+app.get("/health", async (req, res) => {
+  try {
+    const host = process.env.SMTP_HOST || "smtp.gmail.com";
+    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const user = process.env.EMAIL_USER || process.env.SMTP_USER;
+    const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+
+    if (!user || !pass) {
+      return res.status(500).json({
+        status: "error",
+        message: "Missing SMTP credentials",
+        smtp: { host, port, userConfigured: !!user, passConfigured: !!pass },
+        adminEmail
+      });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+      tls: { rejectUnauthorized: false }
+    });
+
+    await transporter.verify();
+    return res.status(200).json({
+      status: "ok",
+      message: "SMTP connection successful",
+      smtp: { host, port, secure: port === 465 },
+      adminEmail
+    });
+  } catch (error) {
+    console.error("[Health] SMTP verification failed:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "SMTP verification failed",
+      error: error.message,
+      stack: error.stack
+    });
+  }
 });
 
 const PORT = process.env.PORT || 5001;

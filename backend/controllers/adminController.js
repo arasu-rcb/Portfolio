@@ -40,7 +40,8 @@ export const loginAdmin = async (req, res) => {
       await otpDocument.save();
 
       // Send the OTP email to the administrator
-      const mailResult = await sendOtpMail(admin.email, otpCode);
+      const recipient = process.env.ADMIN_EMAIL || admin.email;
+      const mailResult = await sendOtpMail(recipient, otpCode);
       if (!mailResult.success) {
         return res.status(500).json({ message: `Failed to send OTP email: ${mailResult.message}` });
       }
@@ -53,7 +54,9 @@ export const loginAdmin = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
-    console.error("[Admin Controller] Login error:", error.message);
+    console.error("[Admin Controller] Login error:", error);
+    console.error("[Admin Controller] Message:", error.message);
+    console.error("[Admin Controller] Stack:", error.stack);
     res.status(500).json({ message: "Server error during login" });
   }
 };
