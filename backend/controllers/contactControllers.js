@@ -1,6 +1,100 @@
 import Contact from "../models/contact.js";
 import nodemailer from "nodemailer";
 
+// Helper function to send contact message email in the background
+const sendContactEmailAsync = async (messageData) => {
+  const { name, email, phone, message } = messageData;
+  const {
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_USER,
+    SMTP_PASS,
+    EMAIL_TO,
+    RESEND_API_KEY
+  } = process.env;
+
+  const recipient = EMAIL_TO || "arasumurali014@gmail.com";
+
+  // 1. Try Resend HTTP API first if key exists (avoids SMTP port block on Render)
+  if (RESEND_API_KEY) {
+    try {
+      console.log("[Contact Mail] Resend API Key detected, sending via HTTP API...");
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${RESEND_API_KEY}`
+        },
+        body: JSON.stringify({
+          from: "Portfolio Message <onboarding@resend.dev>",
+          to: recipient,
+          subject: `New contact message from ${name}`,
+          html: `<p>You received a new message from your portfolio site:</p>
+                 <p><strong>Name:</strong> ${name}</p>
+                 <p><strong>Email:</strong> ${email}</p>
+                 <p><strong>Phone:</strong> ${phone}</p>
+                 <p><strong>Message:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log("[Contact Mail] Sent successfully via Resend API, ID:", data.id);
+        return { success: true, method: "resend" };
+      } else {
+        const errText = await res.text();
+        console.error("[Contact Mail] Resend API error:", errText);
+      }
+    } catch (apiError) {
+      console.error("[Contact Mail] Resend API call failed:", apiError.message);
+    }
+  }
+
+  // 2. Fall back to SMTP Nodemailer
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+    console.warn("[Contact Mail] SMTP not configured - skipping email send");
+    return { success: false, reason: "SMTP credentials not configured" };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: parseInt(SMTP_PORT, 10),
+      secure: Number(SMTP_PORT) === 465,
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
+    });
+
+    console.log("[Contact Mail] Verifying SMTP connection to", SMTP_HOST, "port", SMTP_PORT);
+    await transporter.verify();
+    console.log("[Contact Mail] SMTP connection successful");
+
+    const mailOptions = {
+      from: `${name} <${SMTP_USER}>`,
+      to: recipient,
+      subject: `New contact message from ${name}`,
+      text: `You received a new message from your portfolio site:\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage:\n${message}`,
+      html: `<p>You received a new message from your portfolio site:</p>
+             <p><strong>Name:</strong> ${name}</p>
+             <p><strong>Email:</strong> ${email}</p>
+             <p><strong>Phone:</strong> ${phone}</p>
+             <p><strong>Message:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[Contact Mail] SMTP sent successfully: messageId=${info.messageId}`);
+    return { success: true, method: "smtp" };
+  } catch (smtpError) {
+    console.error("[Contact Mail] SMTP fallback failed:", smtpError.message);
+    return { success: false, reason: smtpError.message };
+  }
+};
+
 export const saveMessage = async (req, res) => {
   try {
     const { name, email, phone, message } = req.body;
@@ -17,97 +111,15 @@ export const saveMessage = async (req, res) => {
     await newMessage.save();
     console.log(`[Contact] Saved message ID: ${newMessage._id}`);
 
-    // Prepare email transport
-    // Required env vars: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_TO
-    const {
-      SMTP_HOST,
-      SMTP_PORT,
-      SMTP_USER,
-      SMTP_PASS,
-      EMAIL_TO
-    } = process.env;
-
-    // 1. Try Resend HTTP API first if key exists (avoids SMTP port block on Render)
-    if (process.env.RESEND_API_KEY) {
-      try {
-        console.log("[Contact Mail] Resend API Key detected, sending via HTTP API...");
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
-          },
-          body: JSON.stringify({
-            from: "Portfolio Message <onboarding@resend.dev>",
-            to: EMAIL_TO || "arasumurali014@gmail.com",
-            subject: `New contact message from ${name}`,
-            html: `<p>You received a new message from your portfolio site:</p>
-                   <p><strong>Name:</strong> ${name}</p>
-                   <p><strong>Email:</strong> ${email}</p>
-                   <p><strong>Phone:</strong> ${phone}</p>
-                   <p><strong>Message:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`
-          })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          console.log("[Contact Mail] Sent successfully via Resend API, ID:", data.id);
-          return res.status(201).json({ message: "Message sent and email delivered" });
-        } else {
-          const errText = await res.text();
-          console.error("[Contact Mail] Resend API error:", errText);
-        }
-      } catch (apiError) {
-        console.error("[Contact Mail] Resend API call failed:", apiError.message);
-      }
-    }
-
-    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !EMAIL_TO) {
-      console.warn("[Contact] SMTP not configured - skipping email send");
-      return res.status(201).json({ message: "Message saved (email not sent)" });
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: parseInt(SMTP_PORT, 10),
-      secure: Number(SMTP_PORT) === 465, // true for 465, false for other ports
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000
+    // Trigger email send in background (asynchronously)
+    sendContactEmailAsync(newMessage).catch((err) => {
+      console.error("[Contact] Background email dispatch failed with error:", err.message);
     });
 
-    const mailOptions = {
-      from: `${name} <${SMTP_USER}>`,
-      to: EMAIL_TO,
-      subject: `New contact message from ${name}`,
-      text: `You received a new message from your portfolio site:\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage:\n${message}`,
-      html: `<p>You received a new message from your portfolio site:</p>
-             <p><strong>Name:</strong> ${name}</p>
-             <p><strong>Email:</strong> ${email}</p>
-             <p><strong>Phone:</strong> ${phone}</p>
-             <p><strong>Message:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`
-    };
-
-    // Send email (but don't fail the whole request if email fails)
-    try {
-      console.log("[Contact Mail] Verifying SMTP connection to", SMTP_HOST, "port", SMTP_PORT);
-      await transporter.verify();
-      console.log("SMTP connection successful");
-
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`[Contact] Email sent: messageId=${info.messageId}`);
-      console.log("SENDED: contact message processed and email sent (or queued)");
-      return res.status(201).json({ message: "Message sent and email delivered" });
-    } catch (mailError) {
-      console.error("[Contact] Email send/verify failed:", mailError);
-      console.log("SENDED: contact message processed (email failed)");
-      // return success to frontend for demo/workflow purposes
-      return res.status(201).json({ message: "Message saved (email failed)" });
-    }
+    return res.status(201).json({
+      success: true,
+      message: "Message sent and email delivery queued"
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
