@@ -6,8 +6,11 @@ export const getEducation = async (req, res) => {
     const educationList = await Education.find().sort({ createdAt: 1 });
     return res.status(200).json(educationList);
   } catch (error) {
-    console.error("[Education Controller] Get error:", error.message);
-    res.status(500).json({ message: "Server error retrieving education details" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -30,8 +33,11 @@ export const createEducation = async (req, res) => {
     await newEducation.save();
     return res.status(201).json({ message: "Education detail added successfully", education: newEducation });
   } catch (error) {
-    console.error("[Education Controller] Create error:", error.message);
-    res.status(500).json({ message: "Server error adding education detail" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -54,8 +60,11 @@ export const updateEducation = async (req, res) => {
     await education.save();
     return res.status(200).json({ message: "Education detail updated successfully", education });
   } catch (error) {
-    console.error("[Education Controller] Update error:", error.message);
-    res.status(500).json({ message: "Server error updating education detail" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -72,7 +81,10 @@ export const deleteEducation = async (req, res) => {
     await Education.findByIdAndDelete(id);
     return res.status(200).json({ message: "Education detail deleted successfully" });
   } catch (error) {
-    console.error("[Education Controller] Delete error:", error.message);
-    res.status(500).json({ message: "Server error deleting education detail" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

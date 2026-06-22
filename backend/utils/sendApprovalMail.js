@@ -24,10 +24,17 @@ export const sendApprovalMail = async (pending) => {
       auth: {
         user,
         pass
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
     });
 
-    const backendUrl = "http://localhost:5001";
+    console.log("[Approval Mail] Verifying SMTP connection to", host, "port", port);
+    await transporter.verify();
+    console.log("[Approval Mail] SMTP connection successful");
+
+    const backendUrl = process.env.BACKEND_URL || "https://arasuportfolio.onrender.com";
     const approveUrl = `${backendUrl}/api/admin/approve-update?token=${pending.token}`;
     const rejectUrl = `${backendUrl}/api/admin/reject-update?token=${pending.token}`;
 

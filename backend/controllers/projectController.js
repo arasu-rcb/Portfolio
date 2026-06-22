@@ -8,8 +8,11 @@ export const getProjects = async (req, res) => {
     const projects = await Project.find().sort({ order: 1, createdAt: -1 });
     return res.status(200).json(projects);
   } catch (error) {
-    console.error("[Project Controller] Get error:", error.message);
-    res.status(500).json({ message: "Server error retrieving projects" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -62,8 +65,11 @@ export const createProject = async (req, res) => {
     await newProject.save();
     return res.status(201).json({ message: "Project created successfully", project: newProject });
   } catch (error) {
-    console.error("[Project Controller] Create error:", error.message);
-    res.status(500).json({ message: "Server error creating project" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -118,8 +124,11 @@ export const updateProject = async (req, res) => {
     await project.save();
     return res.status(200).json({ message: "Project updated successfully", project });
   } catch (error) {
-    console.error("[Project Controller] Update error:", error.message);
-    res.status(500).json({ message: "Server error updating project" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -144,8 +153,11 @@ export const deleteProject = async (req, res) => {
     await Project.findByIdAndDelete(id);
     return res.status(200).json({ message: "Project deleted successfully" });
   } catch (error) {
-    console.error("[Project Controller] Delete error:", error.message);
-    res.status(500).json({ message: "Server error deleting project" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -164,7 +176,10 @@ export const reorderProjects = async (req, res) => {
 
     return res.status(200).json({ message: "Projects reordered successfully" });
   } catch (error) {
-    console.error("[Project Controller] Reorder error:", error.message);
-    res.status(500).json({ message: "Server error reordering projects" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

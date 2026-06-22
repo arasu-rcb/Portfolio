@@ -63,8 +63,11 @@ export const verifyOtp = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("[OTP Controller] Verification error:", error.message);
-    res.status(500).json({ success: false, message: "Server error during OTP verification" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -123,8 +126,11 @@ export const resendOtp = async (req, res) => {
       message: "OTP sent successfully"
     });
   } catch (error) {
-    console.error("[OTP Controller] Resend error:", error.message);
-    res.status(500).json({ success: false, message: "Server error during OTP resend" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -163,8 +169,11 @@ export const requestPasswordReset = async (req, res) => {
       message: "Password reset OTP sent successfully"
     });
   } catch (error) {
-    console.error("[OTP Controller] Request password reset error:", error.message);
-    res.status(500).json({ success: false, message: "Server error during password reset request" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -203,7 +212,10 @@ export const resetPassword = async (req, res) => {
 
     return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {
-    console.error("[OTP Controller] Reset password error:", error.message);
-    res.status(500).json({ success: false, message: "Server error during password reset" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

@@ -24,8 +24,11 @@ export const getAbout = async (req, res) => {
 
     return res.status(200).json(about);
   } catch (error) {
-    console.error("[About Controller] Get error:", error.message);
-    res.status(500).json({ message: "Server error retrieving About details" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -68,8 +71,11 @@ export const updateAbout = async (req, res) => {
 
     return res.status(200).json({ message: "About section updated successfully", about });
   } catch (error) {
-    console.error("[About Controller] Update error:", error.message);
-    res.status(500).json({ message: "Server error updating About details" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -109,8 +115,11 @@ export const updateProfileImage = async (req, res) => {
     await about.save();
     return res.status(200).json({ message: "Profile image updated successfully", about });
   } catch (error) {
-    console.error("[About Controller] Profile image update error:", error.message);
-    res.status(500).json({ message: "Server error updating profile image" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -150,7 +159,10 @@ export const updateResume = async (req, res) => {
     await about.save();
     return res.status(200).json({ message: "Resume updated successfully", about });
   } catch (error) {
-    console.error("[About Controller] Resume update error:", error.message);
-    res.status(500).json({ message: "Server error updating resume" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

@@ -55,10 +55,11 @@ export const loginAdmin = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
-    console.error("[Admin Controller] Login error:", error);
-    console.error("[Admin Controller] Message:", error.message);
-    console.error("[Admin Controller] Stack:", error.stack);
-    res.status(500).json({ message: "Server error during login" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -90,7 +91,10 @@ export const seedAdmin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("[Admin Controller] Seed error:", error.message);
-    res.status(500).json({ message: "Server error during seeding" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

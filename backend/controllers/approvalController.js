@@ -214,14 +214,17 @@ export const approveUpdate = async (req, res) => {
             <div style="font-size: 50px; color: #38a169; margin-bottom: 15px;">✓</div>
             <h1>Change Approved!</h1>
             <p>The proposed modification to the <strong>${modelName}</strong> section has been successfully applied to the live website.</p>
-            <a href="http://localhost:5173/admin/dashboard" class="button">Return to Dashboard</a>
+            <a href="${process.env.FRONTEND_URL || 'https://arasumurali.vercel.app'}/admin/dashboard" class="button">Return to Dashboard</a>
           </div>
         </body>
       </html>
     `);
   } catch (error) {
-    console.error("[Approval Confirmation Error]:", error);
-    return res.status(500).send(`<h1>Server Error</h1><p>${error.message}</p>`);
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -272,13 +275,16 @@ export const rejectUpdate = async (req, res) => {
             <div style="font-size: 50px; color: #e53e3e; margin-bottom: 15px;">✗</div>
             <h1>Change Discarded</h1>
             <p>The proposed modification request was successfully rejected and removed. No changes were applied.</p>
-            <a href="http://localhost:5173/admin/dashboard" class="button">Return to Dashboard</a>
+            <a href="${process.env.FRONTEND_URL || 'https://arasumurali.vercel.app'}/admin/dashboard" class="button">Return to Dashboard</a>
           </div>
         </body>
       </html>
     `);
   } catch (error) {
-    console.error("[Approval Rejection Error]:", error);
-    return res.status(500).send(`<h1>Server Error</h1><p>${error.message}</p>`);
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

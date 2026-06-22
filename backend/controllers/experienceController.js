@@ -8,8 +8,11 @@ export const getExperiences = async (req, res) => {
     const experiences = await Experience.find().sort({ createdAt: -1 });
     return res.status(200).json(experiences);
   } catch (error) {
-    console.error("[Experience Controller] Get error:", error.message);
-    res.status(500).json({ message: "Server error retrieving experiences" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -39,8 +42,11 @@ export const createExperience = async (req, res) => {
     await newExperience.save();
     return res.status(201).json({ message: "Experience created successfully", experience: newExperience });
   } catch (error) {
-    console.error("[Experience Controller] Create error:", error.message);
-    res.status(500).json({ message: "Server error creating experience" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -75,8 +81,11 @@ export const updateExperience = async (req, res) => {
     await experience.save();
     return res.status(200).json({ message: "Experience updated successfully", experience });
   } catch (error) {
-    console.error("[Experience Controller] Update error:", error.message);
-    res.status(500).json({ message: "Server error updating experience" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -101,7 +110,10 @@ export const deleteExperience = async (req, res) => {
     await Experience.findByIdAndDelete(id);
     return res.status(200).json({ message: "Experience deleted successfully" });
   } catch (error) {
-    console.error("[Experience Controller] Delete error:", error.message);
-    res.status(500).json({ message: "Server error deleting experience" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

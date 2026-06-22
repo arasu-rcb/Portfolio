@@ -6,8 +6,11 @@ export const getSkills = async (req, res) => {
     const skills = await Skill.find().sort({ createdAt: 1 });
     return res.status(200).json(skills);
   } catch (error) {
-    console.error("[Skill Controller] Get error:", error.message);
-    res.status(500).json({ message: "Server error retrieving skills" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -29,8 +32,11 @@ export const createSkill = async (req, res) => {
     await newSkill.save();
     return res.status(201).json({ message: "Skill added successfully", skill: newSkill });
   } catch (error) {
-    console.error("[Skill Controller] Create error:", error.message);
-    res.status(500).json({ message: "Server error adding skill" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -52,8 +58,11 @@ export const updateSkill = async (req, res) => {
     await skill.save();
     return res.status(200).json({ message: "Skill updated successfully", skill });
   } catch (error) {
-    console.error("[Skill Controller] Update error:", error.message);
-    res.status(500).json({ message: "Server error updating skill" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -70,7 +79,10 @@ export const deleteSkill = async (req, res) => {
     await Skill.findByIdAndDelete(id);
     return res.status(200).json({ message: "Skill deleted successfully" });
   } catch (error) {
-    console.error("[Skill Controller] Delete error:", error.message);
-    res.status(500).json({ message: "Server error deleting skill" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

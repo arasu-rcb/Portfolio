@@ -39,8 +39,15 @@ export const saveMessage = async (req, res) => {
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
     });
+
+    console.log("[Contact Mail] Verifying SMTP connection to", SMTP_HOST, "port", SMTP_PORT);
+    await transporter.verify();
+    console.log("SMTP connection successful");
 
     const mailOptions = {
       from: `${name} <${SMTP_USER}>`,
@@ -67,9 +74,11 @@ export const saveMessage = async (req, res) => {
       return res.status(201).json({ message: "Message saved (email failed)" });
     }
   } catch (error) {
-    console.error("Error saving message or sending email:", error);
-    console.log("SENDED: contact handler encountered an error");
-    res.status(500).json({ message: "Something went wrong" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -79,8 +88,11 @@ export const getMessages = async (req, res) => {
     const messages = await Contact.find().sort({ createdAt: -1 });
     return res.status(200).json(messages);
   } catch (error) {
-    console.error("[Contact Controller] Get messages error:", error.message);
-    res.status(500).json({ message: "Server error retrieving messages" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -97,7 +109,10 @@ export const deleteMessage = async (req, res) => {
     await Contact.findByIdAndDelete(id);
     return res.status(200).json({ message: "Message deleted successfully" });
   } catch (error) {
-    console.error("[Contact Controller] Delete message error:", error.message);
-    res.status(500).json({ message: "Server error deleting message" });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
