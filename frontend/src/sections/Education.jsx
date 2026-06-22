@@ -22,8 +22,8 @@ const Education = () => {
   const [educationList, setEducationList] = useState([]);
 
   useEffect(() => {
-    // Fetch education details using full backend URL
     const controller = new AbortController();
+
     const fetchEducation = async () => {
       try {
         const response = await fetch("https://arasuportfolio.onrender.com/api/education", { signal: controller.signal });
@@ -39,8 +39,8 @@ const Education = () => {
         setEducationList(staticEducation);
       }
     };
+
     fetchEducation();
-    return () => controller.abort();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -53,6 +53,11 @@ const Education = () => {
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
+
+    return () => {
+      controller.abort();
+      observer.disconnect();
+    };
   }, []);
 
   return (
