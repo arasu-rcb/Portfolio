@@ -41,20 +41,15 @@ export const loginAdmin = async (req, res) => {
 
       console.log(`[AUTH] Generated login OTP for ${admin.email}: ${otpCode}`);
 
-      // Send the OTP email to the administrator
+      // Send the OTP email to the administrator in the background
       const recipient = process.env.ADMIN_EMAIL || admin.email;
-      const mailResult = await sendOtpMail(recipient, otpCode);
-      if (!mailResult.success) {
-        console.warn("[Admin Controller] sendOtpMail failed (falling back to server log OTP):", mailResult.message);
-        return res.status(200).json({
-          success: true,
-          message: "OTP generated (email delivery failed, please check server logs)"
-        });
-      }
+      sendOtpMail(recipient, otpCode).catch((err) => {
+        console.warn("[Admin Controller] background sendOtpMail failed:", err.message);
+      });
 
       return res.status(200).json({
         success: true,
-        message: "OTP sent successfully"
+        message: "OTP generated (please check your email or server logs)"
       });
     } else {
       return res.status(401).json({ message: "Invalid email or password" });

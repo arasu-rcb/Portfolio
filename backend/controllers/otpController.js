@@ -115,15 +115,16 @@ export const resendOtp = async (req, res) => {
     });
     await otpDocument.save();
 
-    // Send via email
-    const mailResult = await sendOtpMail(admin.email, newOtpCode);
-    if (!mailResult.success) {
-      return res.status(500).json({ success: false, message: `Failed to send OTP email: ${mailResult.message}` });
-    }
+    console.log(`[AUTH] Resending login OTP for ${admin.email}: ${newOtpCode}`);
+
+    // Send via email in the background
+    sendOtpMail(admin.email, newOtpCode).catch((err) => {
+      console.warn("[OTP Controller] background sendOtpMail failed for resend:", err.message);
+    });
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully"
+      message: "OTP generated (please check your email or server logs)"
     });
   } catch (error) {
     console.error(error);
@@ -161,18 +162,13 @@ export const requestPasswordReset = async (req, res) => {
 
     console.log(`[AUTH] Generated password reset OTP for ${admin.email}: ${resetOtp}`);
 
-    const mailResult = await sendOtpMail(admin.email, resetOtp);
-    if (!mailResult.success) {
-      console.warn("[OTP Controller] sendOtpMail failed for password reset (falling back to server log OTP):", mailResult.message);
-      return res.status(200).json({
-        success: true,
-        message: "Password reset OTP generated (email delivery failed, please check server logs)"
-      });
-    }
+    sendOtpMail(admin.email, resetOtp).catch((err) => {
+      console.warn("[OTP Controller] background sendOtpMail failed for reset:", err.message);
+    });
 
     return res.status(200).json({
       success: true,
-      message: "Password reset OTP sent successfully"
+      message: "Password reset OTP generated (please check your email or server logs)"
     });
   } catch (error) {
     console.error(error);

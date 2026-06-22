@@ -45,20 +45,19 @@ export const requestApproval = (modelName) => {
       console.log(`[APPROVAL] Approve URL: ${backendUrl}/api/admin/approve-update?token=${token}`);
       console.log(`[APPROVAL] Reject URL: ${backendUrl}/api/admin/reject-update?token=${token}`);
 
-      // Dispatch verification email to admin
-      const emailSent = await sendApprovalMail(pending);
-      if (!emailSent) {
-        console.warn("[Approval Middleware] Failed to send email (falling back to server log approval links).");
-        return res.status(200).json({
-          success: true,
-          message: "Change submitted for approval (email delivery failed, please check server logs to confirm)."
-        });
-      }
+      // Dispatch verification email to admin in the background
+      sendApprovalMail(pending).then((success) => {
+        if (!success) {
+          console.warn("[Approval Middleware] background sendApprovalMail failed.");
+        }
+      }).catch((err) => {
+        console.warn("[Approval Middleware] background sendApprovalMail error:", err.message);
+      });
 
-      // Respond back to frontend that modification is pending email confirmation
+      // Respond back to frontend that modification is pending approval (either via email or log url)
       return res.status(200).json({
         success: true,
-        message: "Change submitted for approval. Please check your email to confirm the update."
+        message: "Change submitted for approval. Please check your email or server logs to confirm the update."
       });
     } catch (error) {
       console.error("[Approval Middleware Error]:", error.message);
