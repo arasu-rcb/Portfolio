@@ -19,7 +19,7 @@ const ProfileEditor = () => {
     try {
       const res = await API.get("/about");
       if (res.data && res.data.profileImage) {
-        setProfileImage(`http://localhost:5001${res.data.profileImage}`);
+        setProfileImage(`https://arasuportfolio.onrender.com${res.data.profileImage}`);
       }
     } catch (err) {
       console.error("Error loading profile image:", err);
@@ -56,7 +56,7 @@ const ProfileEditor = () => {
       });
       setMessage({ text: "Profile image updated successfully! ✅", isError: false });
       if (res.data && res.data.about && res.data.about.profileImage) {
-        setProfileImage(`http://localhost:5001${res.data.about.profileImage}`);
+        setProfileImage(`https://arasuportfolio.onrender.com${res.data.about.profileImage}`);
       }
       setSelectedFile(null);
       setPreviewUrl("");

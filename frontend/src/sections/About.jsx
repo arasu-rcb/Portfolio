@@ -71,7 +71,7 @@ const About = () => {
 
   useEffect(() => {
     // Fetch dynamic About info
-    fetch("http://localhost:5001/api/about")
+    fetch("https://arasuportfolio.onrender.com/api/about")
       .then((res) => {
         if (!res.ok) throw new Error("API not active");
         return res.json();
@@ -174,7 +174,7 @@ const About = () => {
           >
             <div className="w-64 h-64 overflow-hidden rounded-2xl shadow-xl border border-gray-700 dark:border-gray-300">
               <img
-                src={aboutData.profileImage ? `http://localhost:5001${aboutData.profileImage}` : profile}
+                src={aboutData.profileImage ? `https://arasuportfolio.onrender.com${aboutData.profileImage}` : profile}
                 alt="Arasu Murali"
                 className="w-full h-full object-cover scale-[1.25] origin-top"
               />
@@ -219,7 +219,7 @@ const About = () => {
 
             {/* PDF Viewer */}
             <iframe
-              src={aboutData.resumeUrl ? `http://localhost:5001${aboutData.resumeUrl}` : resume}
+              src={aboutData.resumeUrl ? `https://arasuportfolio.onrender.com${aboutData.resumeUrl}` : resume}
               title="Resume"
               className="w-full h-full rounded-2xl"
             ></iframe>

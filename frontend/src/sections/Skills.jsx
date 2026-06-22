@@ -49,7 +49,7 @@ const Skills = () => {
 
   useEffect(() => {
     // Fetch dynamic skills
-    fetch("http://localhost:5001/api/skills")
+    fetch("https://arasuportfolio.onrender.com/api/skills")
       .then((res) => {
         if (!res.ok) throw new Error("API not active");
         return res.json();

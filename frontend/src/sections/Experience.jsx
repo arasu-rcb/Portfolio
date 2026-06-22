@@ -123,7 +123,7 @@ const Experience = () => {
                 company={exp.company}
                 type={exp.type}
                 duration={exp.duration}
-                onView={exp.certificateUrl ? () => openCertificate(exp.isStatic ? exp.certificateUrl : `http://localhost:5001${exp.certificateUrl}`) : null}
+                onView={exp.certificateUrl ? () => openCertificate(exp.isStatic ? exp.certificateUrl : `https://arasuportfolio.onrender.com${exp.certificateUrl}`) : null}
               />
             ))}
           </div>

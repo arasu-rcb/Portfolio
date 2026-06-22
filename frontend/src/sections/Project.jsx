@@ -59,7 +59,7 @@ const Project = () => {
 
   useEffect(() => {
     // Fetch dynamic projects
-    fetch("http://localhost:5001/api/projects")
+    fetch("https://arasuportfolio.onrender.com/api/projects")
       .then((res) => {
         if (!res.ok) throw new Error("API not active");
         return res.json();
@@ -68,7 +68,7 @@ const Project = () => {
         if (Array.isArray(data) && data.length > 0) {
           const mapped = data.map((p) => ({
             ...p,
-            image: p.image ? `http://localhost:5001${p.image}` : "",
+            image: p.image ? `https://arasuportfolio.onrender.com${p.image}` : "",
           }));
           setProjectList(mapped);
         } else {
