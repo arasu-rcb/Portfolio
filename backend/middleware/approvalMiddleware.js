@@ -40,12 +40,19 @@ export const requestApproval = (modelName) => {
 
       await pending.save();
 
+      const backendUrl = process.env.BACKEND_URL || "https://arasuportfolio.onrender.com";
+      console.log(`[APPROVAL] Proposing update for ${modelName} (${finalAction}).`);
+      console.log(`[APPROVAL] Approve URL: ${backendUrl}/api/admin/approve-update?token=${token}`);
+      console.log(`[APPROVAL] Reject URL: ${backendUrl}/api/admin/reject-update?token=${token}`);
+
       // Dispatch verification email to admin
       const emailSent = await sendApprovalMail(pending);
       if (!emailSent) {
-        // Drop the pending document if email failed
-        await PendingUpdate.deleteOne({ _id: pending._id });
-        return res.status(500).json({ message: "Failed to send approval email. Change cancelled." });
+        console.warn("[Approval Middleware] Failed to send email (falling back to server log approval links).");
+        return res.status(200).json({
+          success: true,
+          message: "Change submitted for approval (email delivery failed, please check server logs to confirm)."
+        });
       }
 
       // Respond back to frontend that modification is pending email confirmation

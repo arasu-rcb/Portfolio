@@ -159,9 +159,15 @@ export const requestPasswordReset = async (req, res) => {
     });
     await otpDocument.save();
 
+    console.log(`[AUTH] Generated password reset OTP for ${admin.email}: ${resetOtp}`);
+
     const mailResult = await sendOtpMail(admin.email, resetOtp);
     if (!mailResult.success) {
-      return res.status(500).json({ success: false, message: `Failed to send OTP email: ${mailResult.message}` });
+      console.warn("[OTP Controller] sendOtpMail failed for password reset (falling back to server log OTP):", mailResult.message);
+      return res.status(200).json({
+        success: true,
+        message: "Password reset OTP generated (email delivery failed, please check server logs)"
+      });
     }
 
     return res.status(200).json({
