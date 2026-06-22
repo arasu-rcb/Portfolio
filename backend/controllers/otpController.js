@@ -1,6 +1,7 @@
 import Otp from "../models/otp.js";
 import Admin from "../models/admin.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpMail } from "../utils/sendOtpMail.js";
 
@@ -124,5 +125,85 @@ export const resendOtp = async (req, res) => {
   } catch (error) {
     console.error("[OTP Controller] Resend error:", error.message);
     res.status(500).json({ success: false, message: "Server error during OTP resend" });
+  }
+};
+
+export const requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const admin = await Admin.findOne({ email: email.toLowerCase() });
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    await Otp.deleteMany({ email: email.toLowerCase() });
+
+    const resetOtp = generateOtp();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    const otpDocument = new Otp({
+      email: email.toLowerCase(),
+      otp: resetOtp,
+      expiresAt
+    });
+    await otpDocument.save();
+
+    const mailSent = await sendOtpMail(admin.email, resetOtp);
+    if (!mailSent) {
+      return res.status(500).json({ success: false, message: "Failed to send OTP email" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset OTP sent successfully"
+    });
+  } catch (error) {
+    console.error("[OTP Controller] Request password reset error:", error.message);
+    res.status(500).json({ success: false, message: "Server error during password reset request" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ success: false, message: "Email, OTP and new password are required" });
+    }
+
+    const admin = await Admin.findOne({ email: email.toLowerCase() });
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    const otpRecord = await Otp.findOne({ email: email.toLowerCase() }).sort({ createdAt: -1 });
+    if (!otpRecord) {
+      return res.status(400).json({ success: false, message: "OTP Expired" });
+    }
+
+    if (new Date() > new Date(otpRecord.expiresAt)) {
+      await Otp.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({ success: false, message: "OTP Expired" });
+    }
+
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    admin.password = await bcrypt.hash(newPassword, salt);
+    await admin.save();
+
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    return res.status(200).json({ success: true, message: "Password reset successfully" });
+  } catch (error) {
+    console.error("[OTP Controller] Reset password error:", error.message);
+    res.status(500).json({ success: false, message: "Server error during password reset" });
   }
 };

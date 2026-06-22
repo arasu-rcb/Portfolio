@@ -113,6 +113,15 @@ const AdminLogin = () => {
 
         </form>
 
+        <div className="text-right">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/forgot-password")}
+            className="text-sm font-semibold text-yellow-400 hover:text-yellow-300 dark:text-blue-500 dark:hover:text-blue-400 transition"
+          >
+            Forgot password?
+          </button>
+        </div>
       </div>
     </div>
   );

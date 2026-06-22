@@ -10,6 +10,8 @@ import Contact from "./sections/Contact"
 
 import AdminLogin from "./pages/AdminLogin";
 import OtpVerification from "./pages/OtpVerification";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -41,6 +43,10 @@ function App() {
 
         {/* OTP Verification Page */}
         <Route path="/admin/otp-verification" element={<OtpVerification />} />
+
+        {/* Forgot password flow */}
+        <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin/reset-password" element={<ResetPassword />} />
 
         {/* Protected Admin Dashboard */}
         <Route
