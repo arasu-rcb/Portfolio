@@ -6,7 +6,6 @@ import resume from "../assets/Arasu Murali Updated Resume.pdf";
 const About = () => {
   const sectionRef = useRef(null);
   const [visible, setVisible] = useState(false);
-  const [showResume, setShowResume] = useState(false);
 
   const [aboutData, setAboutData] = useState({
     name: "Arasu Murali",
@@ -157,13 +156,15 @@ const About = () => {
 
             {/* Resume button directly below contact info */}
             <div className="mt-8">
-              <button
-                onClick={() => setShowResume(true)}
+              <a
+                href={aboutData.resumeUrl ? `https://arasuportfolio.onrender.com${aboutData.resumeUrl}` : resume}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-yellow-400 dark:bg-blue-600 text-gray-900 dark:text-white px-6 py-2.5 rounded-full font-semibold hover:scale-105 transition shadow-lg hover:bg-yellow-500 dark:hover:bg-blue-700"
               >
                 <FaFileAlt />
                 View Resume
-              </button>
+              </a>
             </div>
           </div>
 
@@ -203,29 +204,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* ✅ Resume Modal Popup */}
-      {showResume && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
 
-          <div className="relative bg-white dark:bg-gray-900 w-[90%] md:w-[70%] h-[80%] rounded-2xl shadow-2xl overflow-hidden">
-
-            {/* Close Button */}
-            <button
-              onClick={() => setShowResume(false)}
-              className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition"
-            >
-              <FaTimes />
-            </button>
-
-            {/* PDF Viewer */}
-            <iframe
-              src={aboutData.resumeUrl ? `https://arasuportfolio.onrender.com${aboutData.resumeUrl}` : resume}
-              title="Resume"
-              className="w-full h-full rounded-2xl"
-            ></iframe>
-          </div>
-        </div>
-      )}
     </>
   );
 };

@@ -44,9 +44,6 @@ const Experience = () => {
   const [visible, setVisible] = useState(false);
   const [expList, setExpList] = useState([]);
 
-  // Modal State
-  const [showModal, setShowModal] = useState(false);
-  const [activeCertificate, setActiveCertificate] = useState("");
 
   useEffect(() => {
     // Fetch experiences using full backend URL
@@ -92,18 +89,6 @@ const Experience = () => {
     };
   }, []);
 
-  // Open Certificate Modal
-  const openCertificate = (file) => {
-    setActiveCertificate(file);
-    setShowModal(true);
-  };
-
-  // Close Modal
-  const closeModal = () => {
-    setShowModal(false);
-    setActiveCertificate("");
-  };
-
   return (
     <>
       <section
@@ -133,39 +118,14 @@ const Experience = () => {
                 company={exp.company}
                 type={exp.type}
                 duration={exp.duration}
-                onView={exp.certificateUrl ? () => openCertificate(exp.isStatic ? exp.certificateUrl : `https://arasuportfolio.onrender.com${exp.certificateUrl}`) : null}
+                onView={exp.certificateUrl ? (exp.isStatic ? exp.certificateUrl : `https://arasuportfolio.onrender.com${exp.certificateUrl}`) : null}
               />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ---------------- CERTIFICATE MODAL ---------------- */}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-
-          <div className="relative bg-white dark:bg-gray-900 w-[90%] md:w-[70%] h-[80%] rounded-2xl shadow-2xl overflow-hidden">
-
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition"
-            >
-              <FaTimes />
-            </button>
-
-            {/* Certificate Preview */}
-            <iframe
-              src={activeCertificate}
-              title="Certificate Preview"
-              className="w-full h-full rounded-2xl"
-            ></iframe>
-
-          </div>
-
-        </div>
-      )}
 
     </>
   );
@@ -223,13 +183,15 @@ const ExperienceItem = ({
 
       {/* Right Button */}
       {onView && (
-        <button
-          onClick={onView}
+        <a
+          href={onView}
+          target="_blank"
+          rel="noopener noreferrer"
           className="w-full sm:w-auto flex items-center justify-center gap-2 bg-yellow-400 dark:bg-blue-400 text-gray-900 dark:text-white px-5 py-2 rounded-full font-medium hover:scale-105 transition shadow-md whitespace-nowrap"
         >
           <FaFileAlt />
           Certificate
-        </button>
+        </a>
       )}
 
     </div>
