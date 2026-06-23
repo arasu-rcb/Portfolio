@@ -187,7 +187,7 @@ const Skills = () => {
 const SkillCard = ({ title, children }) => (
   <div className="border border-gray-700 dark:border-gray-300 rounded-2xl p-6 transition transform hover:scale-105 bg-gray-800 dark:bg-gray-100">
     <h4 className="text-xl font-semibold text-white dark:text-gray-900 mb-5">{title}</h4>
-    <div className="grid grid-cols-2 gap-4">{children}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{children}</div>
   </div>
 );
 
