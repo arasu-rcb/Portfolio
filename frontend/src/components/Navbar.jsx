@@ -12,7 +12,7 @@ import {
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "light" ? false : true;
+    return localStorage.getItem("theme") === "dark" ? true : false;
   });
 
   useEffect(() => {
