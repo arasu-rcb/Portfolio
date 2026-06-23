@@ -18,21 +18,60 @@ import {
   FaNodeJs,
   FaPython,
   FaJava,
-  FaGithub
+  FaGithub,
+  FaPhp,
+  FaRust,
+  FaDocker,
+  FaAws,
+  FaLinux,
+  FaWindows,
+  FaApple,
+  FaTerminal,
+  FaCode,
+  FaDatabase,
+  FaCloud,
+  FaLaptopCode,
+  FaMobileAlt,
+  FaGlobe,
+  FaJs,
+  FaGitAlt,
+  FaMicrosoft
 } from "react-icons/fa";
 import {
   SiTailwindcss,
   SiMongodb,
   SiMysql,
   SiVercel,
-  SiNetlify
+  SiNetlify,
+  SiBootstrap,
+  SiSvelte,
+  SiVuedotjs,
+  SiAngular,
+  SiTypescript,
+  SiJquery,
+  SiCplusplus,
+  SiSharp,
+  SiRuby,
+  SiSwift,
+  SiKotlin,
+  SiPostgresql,
+  SiRedis,
+  SiSqlite,
+  SiOracle,
+  SiKubernetes,
+  SiFirebase,
+  SiGooglecloud,
+  SiHeroku,
+  SiDigitalocean,
+  SiFigma,
+  SiGo
 } from "react-icons/si";
 
 const availableIcons = [
+  "FaTools",
   "FaNetworkWired",
   "FaServer",
   "FaMicrochip",
-  "FaTools",
   "FaShieldAlt",
   "FaHtml5",
   "FaCss3Alt",
@@ -45,7 +84,47 @@ const availableIcons = [
   "FaJava",
   "FaGithub",
   "SiVercel",
-  "SiNetlify"
+  "SiNetlify",
+  "SiBootstrap",
+  "SiSvelte",
+  "SiVuedotjs",
+  "SiAngular",
+  "SiTypescript",
+  "SiJquery",
+  "FaJs",
+  "FaPhp",
+  "FaRust",
+  "SiGo",
+  "SiCplusplus",
+  "SiCsharp",
+  "SiRuby",
+  "SiSwift",
+  "SiKotlin",
+  "FaDocker",
+  "SiKubernetes",
+  "FaAws",
+  "SiFirebase",
+  "SiGooglecloud",
+  "SiMicrosoftazure",
+  "SiHeroku",
+  "SiDigitalocean",
+  "SiPostgresql",
+  "SiRedis",
+  "SiSqlite",
+  "SiOracle",
+  "FaGitAlt",
+  "SiFigma",
+  "FaLinux",
+  "FaWindows",
+  "FaApple",
+  "FaTerminal",
+  "FaCode",
+  "FaDatabase",
+  "FaCloud",
+  "FaLaptopCode",
+  "FaMobileAlt",
+  "FaGlobe",
+  "FaBrain"
 ];
 
 const iconComponentMap = {
@@ -65,7 +144,47 @@ const iconComponentMap = {
   FaJava: <FaJava />,
   FaGithub: <FaGithub />,
   SiVercel: <SiVercel />,
-  SiNetlify: <SiNetlify />
+  SiNetlify: <SiNetlify />,
+  SiBootstrap: <SiBootstrap />,
+  SiSvelte: <SiSvelte />,
+  SiVuedotjs: <SiVuedotjs />,
+  SiAngular: <SiAngular />,
+  SiTypescript: <SiTypescript />,
+  SiJquery: <SiJquery />,
+  FaJs: <FaJs />,
+  FaPhp: <FaPhp />,
+  FaRust: <FaRust />,
+  SiGo: <SiGo />,
+  SiCplusplus: <SiCplusplus />,
+  SiSharp: <SiSharp />,
+  SiRuby: <SiRuby />,
+  SiSwift: <SiSwift />,
+  SiKotlin: <SiKotlin />,
+  FaDocker: <FaDocker />,
+  SiKubernetes: <SiKubernetes />,
+  FaAws: <FaAws />,
+  SiFirebase: <SiFirebase />,
+  SiGooglecloud: <SiGooglecloud />,
+  FaMicrosoft: <FaMicrosoft />,
+  SiHeroku: <SiHeroku />,
+  SiDigitalocean: <SiDigitalocean />,
+  SiPostgresql: <SiPostgresql />,
+  SiRedis: <SiRedis />,
+  SiSqlite: <SiSqlite />,
+  SiOracle: <SiOracle />,
+  FaGitAlt: <FaGitAlt />,
+  SiFigma: <SiFigma />,
+  FaLinux: <FaLinux />,
+  FaWindows: <FaWindows />,
+  FaApple: <FaApple />,
+  FaTerminal: <FaTerminal />,
+  FaCode: <FaCode />,
+  FaDatabase: <FaDatabase />,
+  FaCloud: <FaCloud />,
+  FaLaptopCode: <FaLaptopCode />,
+  FaMobileAlt: <FaMobileAlt />,
+  FaGlobe: <FaGlobe />,
+  FaBrain: <FaBrain />
 };
 
 const renderIconPreview = (iconName) => {
@@ -81,6 +200,7 @@ const SkillsEditor = () => {
   // Form / Modal States
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [isCustom, setIsCustom] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     percentage: 80,
@@ -114,6 +234,7 @@ const SkillsEditor = () => {
 
   const handleOpenAddModal = () => {
     setEditId(null);
+    setIsCustom(false);
     setFormData({
       name: "",
       percentage: 80,
@@ -125,6 +246,7 @@ const SkillsEditor = () => {
 
   const handleOpenEditModal = (skill) => {
     setEditId(skill._id);
+    setIsCustom(!availableIcons.includes(skill.icon || "FaTools"));
     setFormData({
       name: skill.name || "",
       percentage: skill.percentage || 80,
@@ -326,9 +448,17 @@ const SkillsEditor = () => {
                 <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Skill Icon</label>
                 <div className="flex gap-3 items-center">
                   <select
-                    name="icon"
-                    value={formData.icon}
-                    onChange={handleChange}
+                    value={isCustom ? "custom" : formData.icon}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "custom") {
+                        setIsCustom(true);
+                        setFormData({ ...formData, icon: "" });
+                      } else {
+                        setIsCustom(false);
+                        setFormData({ ...formData, icon: val });
+                      }
+                    }}
                     className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl flex-1 outline-none px-4 py-3 text-sm text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
                   >
                     {availableIcons.map((ic) => (
@@ -336,11 +466,29 @@ const SkillsEditor = () => {
                         {ic}
                       </option>
                     ))}
+                    <option value="custom">Custom Icon...</option>
                   </select>
                   <div className="w-11 h-11 flex items-center justify-center bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl text-yellow-400 dark:text-blue-600 text-xl flex-shrink-0">
                     {renderIconPreview(formData.icon)}
                   </div>
                 </div>
+
+                {isCustom && (
+                  <div className="pt-2">
+                    <input
+                      type="text"
+                      name="icon"
+                      required
+                      value={formData.icon}
+                      onChange={handleChange}
+                      placeholder="Enter custom icon name (e.g. FaDocker)"
+                      className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl w-full outline-none px-4 py-2.5 text-xs text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
+                    />
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 pl-1">
+                      Type any mapped React-icon name (e.g. FaDocker, SiBootstrap, SiVue)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Range slider removed as requested, default payload is sent to DB */}

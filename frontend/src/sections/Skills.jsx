@@ -12,6 +12,24 @@ import {
   FaMicrochip,
   FaServer,
   FaShieldAlt,
+  FaPhp,
+  FaRust,
+  FaDocker,
+  FaAws,
+  FaLinux,
+  FaWindows,
+  FaApple,
+  FaTerminal,
+  FaCode,
+  FaDatabase,
+  FaCloud,
+  FaLaptopCode,
+  FaMobileAlt,
+  FaGlobe,
+  FaBrain,
+  FaJs,
+  FaGitAlt,
+  FaMicrosoft
 } from "react-icons/fa";
 import {
   SiTailwindcss,
@@ -19,6 +37,28 @@ import {
   SiMysql,
   SiVercel,
   SiNetlify,
+  SiBootstrap,
+  SiSvelte,
+  SiVuedotjs,
+  SiAngular,
+  SiTypescript,
+  SiJquery,
+  SiCplusplus,
+  SiSharp,
+  SiRuby,
+  SiSwift,
+  SiKotlin,
+  SiPostgresql,
+  SiRedis,
+  SiSqlite,
+  SiOracle,
+  SiKubernetes,
+  SiFirebase,
+  SiGooglecloud,
+  SiHeroku,
+  SiDigitalocean,
+  SiFigma,
+  SiGo
 } from "react-icons/si";
 
 const skillIconMap = {
@@ -42,11 +82,7 @@ const skillIconMap = {
 };
 
 const skillIconNameMap = {
-  FaNetworkWired: <FaNetworkWired className="text-blue-400" />,
-  FaServer: <FaServer className="text-indigo-400" />,
-  FaMicrochip: <FaMicrochip className="text-purple-400" />,
-  FaTools: <FaTools className="text-yellow-500" />,
-  FaShieldAlt: <FaShieldAlt className="text-red-500" />,
+  // Web Development
   FaHtml5: <FaHtml5 className="text-orange-500" />,
   FaCss3Alt: <FaCss3Alt className="text-blue-500" />,
   FaReact: <FaReact className="text-cyan-400" />,
@@ -54,11 +90,66 @@ const skillIconNameMap = {
   FaNodeJs: <FaNodeJs className="text-green-500" />,
   SiMongodb: <SiMongodb className="text-green-600" />,
   SiMysql: <SiMysql className="text-blue-600" />,
+  SiBootstrap: <SiBootstrap className="text-purple-600" />,
+  SiSvelte: <SiSvelte className="text-orange-600" />,
+  SiVuedotjs: <SiVuedotjs className="text-green-500" />,
+  SiAngular: <SiAngular className="text-red-600" />,
+  SiTypescript: <SiTypescript className="text-blue-500" />,
+  FaJs: <FaJs className="text-yellow-400" />,
+  SiJquery: <SiJquery className="text-blue-400" />,
+
+  // Programming Languages
   FaPython: <FaPython className="text-yellow-400" />,
   FaJava: <FaJava className="text-red-600" />,
+  FaPhp: <FaPhp className="text-indigo-400" />,
+  FaRust: <FaRust className="text-orange-500" />,
+  SiGo: <SiGo className="text-cyan-500" />,
+  SiCplusplus: <SiCplusplus className="text-blue-600" />,
+  SiSharp: <SiSharp className="text-blue-500" />,
+  SiRuby: <SiRuby className="text-red-500" />,
+  SiSwift: <SiSwift className="text-orange-500" />,
+  SiKotlin: <SiKotlin className="text-indigo-500" />,
+
+  // Infrastructure & Networking
+  FaNetworkWired: <FaNetworkWired className="text-blue-400" />,
+  FaServer: <FaServer className="text-indigo-400" />,
+  FaMicrochip: <FaMicrochip className="text-purple-400" />,
+  FaTools: <FaTools className="text-yellow-500" />,
+  FaShieldAlt: <FaShieldAlt className="text-red-500" />,
+  FaDocker: <FaDocker className="text-blue-400" />,
+  SiKubernetes: <SiKubernetes className="text-blue-500" />,
+  FaAws: <FaAws className="text-yellow-500" />,
+  SiFirebase: <SiFirebase className="text-orange-500" />,
+  SiGooglecloud: <SiGooglecloud className="text-blue-400" />,
+  FaMicrosoft: <FaMicrosoft className="text-blue-600" />,
+  SiHeroku: <SiHeroku className="text-purple-500" />,
+  SiDigitalocean: <SiDigitalocean className="text-blue-400" />,
+
+  // Databases
+  SiPostgresql: <SiPostgresql className="text-blue-400" />,
+  SiRedis: <SiRedis className="text-red-600" />,
+  SiSqlite: <SiSqlite className="text-blue-500" />,
+  SiOracle: <SiOracle className="text-red-600" />,
+
+  // Tools & Collaboration
   FaGithub: <FaGithub className="text-gray-400" />,
+  FaGitAlt: <FaGitAlt className="text-orange-600" />,
   SiVercel: <SiVercel className="text-white dark:text-gray-900" />,
-  SiNetlify: <SiNetlify className="text-cyan-300" />
+  SiNetlify: <SiNetlify className="text-cyan-300" />,
+  SiFigma: <SiFigma className="text-pink-500" />,
+
+  // General OS & Utilities
+  FaLinux: <FaLinux className="text-yellow-500" />,
+  FaWindows: <FaWindows className="text-blue-500" />,
+  FaApple: <FaApple className="text-gray-300 dark:text-gray-800" />,
+  FaTerminal: <FaTerminal className="text-green-400" />,
+  FaCode: <FaCode className="text-gray-400" />,
+  FaDatabase: <FaDatabase className="text-blue-400" />,
+  FaCloud: <FaCloud className="text-blue-300" />,
+  FaLaptopCode: <FaLaptopCode className="text-indigo-400" />,
+  FaMobileAlt: <FaMobileAlt className="text-gray-400" />,
+  FaGlobe: <FaGlobe className="text-blue-400" />,
+  FaBrain: <FaBrain className="text-pink-400" />
 };
 
 const Skills = () => {
