@@ -10,6 +10,7 @@ export const sendApprovalMail = async (pending) => {
     const backendUrl = process.env.BACKEND_URL || "https://arasuportfolio.onrender.com";
     const approveUrl = `${backendUrl}/api/admin/approve-update?token=${pending.token}`;
     const rejectUrl = `${backendUrl}/api/admin/reject-update?token=${pending.token}`;
+    const recipient = process.env.ADMIN_EMAIL || process.env.EMAIL_TO || process.env.SMTP_USER || "arasumurali014@gmail.com";
 
     // Helper to format update data as HTML table rows
     let dataRows = "";
@@ -79,7 +80,7 @@ export const sendApprovalMail = async (pending) => {
     // 1. Try Resend HTTP API first if key exists (avoids SMTP port block on Render)
     if (process.env.RESEND_API_KEY) {
       try {
-        console.log("[Approval Mail] Resend API Key detected, sending via HTTP API...");
+        console.log("[Approval Mail] Resend API Key detected, sending via HTTP API to:", recipient);
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -88,7 +89,7 @@ export const sendApprovalMail = async (pending) => {
           },
           body: JSON.stringify({
             from: "Portfolio Control <onboarding@resend.dev>",
-            to: "arasumurali014@gmail.com",
+            to: recipient,
             subject: `[Approval Required] Proposed Portfolio Change - ${pending.modelName}`,
             html: htmlContent
           })
@@ -109,7 +110,7 @@ export const sendApprovalMail = async (pending) => {
 
     // 2. Fall back to SMTP Nodemailer
     const host = process.env.SMTP_HOST || "smtp.gmail.com";
-    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const port = parseInt(process.env.SMTP_PORT || "587", 10);
     const user = process.env.EMAIL_USER || process.env.SMTP_USER;
     const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
 
@@ -118,30 +119,58 @@ export const sendApprovalMail = async (pending) => {
       return false;
     }
 
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000
-    });
-
-    console.log("[Approval Mail] Verifying SMTP connection to", host, "port", port);
-    await transporter.verify();
-    console.log("[Approval Mail] SMTP connection successful");
+    const buildTransport = (transportPort) => {
+      return {
+        host,
+        port: transportPort,
+        secure: transportPort === 465,
+        requireTLS: transportPort === 587,
+        auth: { user, pass },
+        tls: { rejectUnauthorized: false },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000
+      };
+    };
 
     const mailOptions = {
       from: `"Portfolio Admin Control" <${user}>`,
-      to: "arasumurali014@gmail.com",
+      to: recipient,
       subject: `[Approval Required] Proposed Portfolio Change - ${pending.modelName}`,
       html: htmlContent
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Approval Mail] Request sent for ${pending.modelName} (${pending.action}). Message ID: ${info.messageId}`);
-    return true;
+    const trySend = async (transportSettings) => {
+      const transporter = nodemailer.createTransport(transportSettings);
+      console.log("[Approval Mail] Verifying SMTP connection to", transportSettings.host, "port", transportSettings.port);
+      await transporter.verify();
+      console.log("[Approval Mail] SMTP connection successful");
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`[Approval Mail] Request sent for ${pending.modelName} (${pending.action}). Message ID: ${info.messageId}`);
+      return true;
+    };
+
+    try {
+      console.log("[Approval Mail] Attempting SMTP connection on port", port);
+      await trySend(buildTransport(port));
+      return true;
+    } catch (primaryError) {
+      console.error("[Approval Mail] Primary SMTP error:", primaryError.message);
+      
+      if (host.includes("gmail.com") && port === 587) {
+        console.log("[Approval Mail] Fallback: Attempting port 465...");
+        try {
+          const fallbackTransport = buildTransport(465);
+          fallbackTransport.secure = true;
+          fallbackTransport.requireTLS = false;
+          await trySend(fallbackTransport);
+          return true;
+        } catch (fallbackError) {
+          console.error("[Approval Mail] Fallback port 465 failed:", fallbackError.message);
+        }
+      }
+      return false;
+    }
   } catch (error) {
     console.error("[Approval Mail] Failed to dispatch email:", error.message);
     return false;
