@@ -130,13 +130,39 @@ export const approveUpdate = async (req, res) => {
     else if (modelName === "Skill") {
       if (action === "CREATE") {
         const skill = new Skill(updateData);
+        if (fileDetails) {
+          skill.icon = fileDetails.path;
+        }
         await skill.save();
       }
       else if (action === "UPDATE") {
-        await Skill.findByIdAndUpdate(targetId, updateData, { new: true });
+        const skill = await Skill.findById(targetId);
+        if (skill) {
+          if (fileDetails) {
+            // Delete old uploaded file
+            if (skill.icon && skill.icon.startsWith("/uploads/")) {
+              const oldPath = path.join(process.cwd(), skill.icon);
+              if (fs.existsSync(oldPath)) {
+                try { fs.unlinkSync(oldPath); } catch (e) {}
+              }
+            }
+            skill.icon = fileDetails.path;
+          }
+          Object.assign(skill, updateData);
+          await skill.save();
+        }
       }
       else if (action === "DELETE") {
-        await Skill.findByIdAndDelete(targetId);
+        const skill = await Skill.findById(targetId);
+        if (skill) {
+          if (skill.icon && skill.icon.startsWith("/uploads/")) {
+            const oldPath = path.join(process.cwd(), skill.icon);
+            if (fs.existsSync(oldPath)) {
+              try { fs.unlinkSync(oldPath); } catch (e) {}
+            }
+          }
+          await Skill.findByIdAndDelete(targetId);
+        }
       }
     }
 

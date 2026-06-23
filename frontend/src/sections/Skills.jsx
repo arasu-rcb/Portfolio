@@ -152,6 +152,23 @@ const skillIconNameMap = {
   FaBrain: <FaBrain className="text-pink-400" />
 };
 
+const renderSkillIcon = (skill) => {
+  if (skill.icon && (skill.icon.startsWith("/uploads/") || skill.icon.startsWith("http"))) {
+    return (
+      <img
+        src={`https://arasuportfolio.onrender.com${skill.icon}`}
+        alt={skill.name}
+        className="w-6 h-6 object-contain inline-block"
+      />
+    );
+  }
+  return (
+    skillIconNameMap[skill.icon] ||
+    skillIconMap[skill.name] ||
+    <FaTools className="text-yellow-500" />
+  );
+};
+
 const Skills = () => {
   const sectionRef = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -279,11 +296,7 @@ const Skills = () => {
                   {catSkills.map((skill) => (
                     <Skill
                       key={skill._id}
-                      icon={
-                        skillIconNameMap[skill.icon] ||
-                        skillIconMap[skill.name] ||
-                        <FaTools className="text-yellow-500" />
-                      }
+                      icon={renderSkillIcon(skill)}
                       name={skill.name}
                     />
                   ))}

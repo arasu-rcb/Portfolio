@@ -188,8 +188,24 @@ const iconComponentMap = {
 };
 
 const renderIconPreview = (iconName) => {
+  if (iconName && (iconName.startsWith("/uploads/") || iconName.startsWith("http"))) {
+    return (
+      <img
+        src={`https://arasuportfolio.onrender.com${iconName}`}
+        alt="Skill Icon"
+        className="w-5 h-5 object-contain inline-block"
+      />
+    );
+  }
   return iconComponentMap[iconName] || <FaTools />;
 };
+
+const presetCategories = [
+  "Hardware & Networking",
+  "Web Development",
+  "Programming Languages",
+  "Tools"
+];
 
 const SkillsEditor = () => {
   const [skills, setSkills] = useState([]);
@@ -201,6 +217,10 @@ const SkillsEditor = () => {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [isCustom, setIsCustom] = useState(false);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [iconType, setIconType] = useState("preset"); // "preset" or "upload"
+  const [iconFile, setIconFile] = useState(null);
+  const [iconPreview, setIconPreview] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     percentage: 80,
@@ -208,11 +228,13 @@ const SkillsEditor = () => {
     icon: "FaTools"
   });
 
-  const categories = [
-    "Hardware & Networking",
-    "Web Development",
-    "Programming Languages",
-    "Tools"
+  // Extract all categories from skills in database
+  const uniqueCategories = Array.from(new Set(skills.map((s) => s.category).filter(Boolean)));
+
+  // Combine preset categories and unique categories from database
+  const allCategories = [
+    ...presetCategories,
+    ...uniqueCategories.filter((c) => !presetCategories.includes(c))
   ];
 
   // Fetch skills
@@ -235,6 +257,10 @@ const SkillsEditor = () => {
   const handleOpenAddModal = () => {
     setEditId(null);
     setIsCustom(false);
+    setIsCustomCategory(false);
+    setIconType("preset");
+    setIconFile(null);
+    setIconPreview("");
     setFormData({
       name: "",
       percentage: 80,
@@ -246,14 +272,38 @@ const SkillsEditor = () => {
 
   const handleOpenEditModal = (skill) => {
     setEditId(skill._id);
-    setIsCustom(!availableIcons.includes(skill.icon || "FaTools"));
-    setFormData({
-      name: skill.name || "",
-      percentage: skill.percentage || 80,
-      category: skill.category || "Web Development",
-      icon: skill.icon || "FaTools"
-    });
+    setIconFile(null);
+    setIsCustomCategory(!presetCategories.includes(skill.category || "Web Development"));
+    if (skill.icon && (skill.icon.startsWith("/uploads/") || skill.icon.startsWith("http"))) {
+      setIconType("upload");
+      setIconPreview(`https://arasuportfolio.onrender.com${skill.icon}`);
+      setIsCustom(false);
+      setFormData({
+        name: skill.name || "",
+        percentage: skill.percentage || 80,
+        category: skill.category || "Web Development",
+        icon: ""
+      });
+    } else {
+      setIconType("preset");
+      setIconPreview("");
+      setIsCustom(!availableIcons.includes(skill.icon || "FaTools"));
+      setFormData({
+        name: skill.name || "",
+        percentage: skill.percentage || 80,
+        category: skill.category || "Web Development",
+        icon: skill.icon || "FaTools"
+      });
+    }
     setShowModal(true);
+  };
+
+  const handleIconFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIconFile(file);
+      setIconPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleChange = (e) => {
@@ -268,12 +318,34 @@ const SkillsEditor = () => {
     setSaving(true);
     setMessage({ text: "", isError: false });
 
+    // Prepare FormData payload
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("percentage", Number(formData.percentage));
+    data.append("category", formData.category);
+
+    if (iconType === "upload") {
+      if (iconFile) {
+        data.append("iconFile", iconFile);
+      } else if (!editId) {
+        setMessage({ text: "Please select an icon file to upload", isError: true });
+        setSaving(false);
+        return;
+      }
+    } else {
+      data.append("icon", formData.icon || "FaTools");
+    }
+
     try {
       if (editId) {
-        await API.put(`/skills/${editId}`, formData);
+        await API.put(`/skills/${editId}`, data, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
         setMessage({ text: "Skill updated successfully! ✅", isError: false });
       } else {
-        await API.post("/skills", formData);
+        await API.post("/skills", data, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
         setMessage({ text: "Skill added successfully! ✅", isError: false });
       }
       setShowModal(false);
@@ -312,7 +384,7 @@ const SkillsEditor = () => {
   }
 
   // Group skills by category for better display in the editor
-  const groupedSkills = categories.reduce((acc, cat) => {
+  const groupedSkills = allCategories.reduce((acc, cat) => {
     acc[cat] = skills.filter((s) => s.category === cat);
     return acc;
   }, {});
@@ -348,8 +420,9 @@ const SkillsEditor = () => {
 
       {/* Grid of categories */}
       <div className="space-y-6">
-        {categories.map((cat) => {
+        {allCategories.map((cat) => {
           const list = groupedSkills[cat] || [];
+          if (list.length === 0 && !presetCategories.includes(cat)) return null;
           return (
             <div key={cat} className="bg-gray-900 dark:bg-white border border-gray-800 dark:border-gray-200 rounded-2xl p-6 space-y-4 dark:shadow-md">
               <h4 className="text-md font-bold text-yellow-400 dark:text-blue-600 border-b border-gray-800 dark:border-gray-200 pb-2">{cat}</h4>
@@ -430,66 +503,154 @@ const SkillsEditor = () => {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Category</label>
                 <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
+                  value={isCustomCategory ? "custom" : formData.category}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "custom") {
+                      setIsCustomCategory(true);
+                      setFormData({ ...formData, category: "" });
+                    } else {
+                      setIsCustomCategory(false);
+                      setFormData({ ...formData, category: val });
+                    }
+                  }}
                   className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl w-full outline-none px-4 py-3 text-sm text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
                 >
-                  {categories.map((cat) => (
+                  {allCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
                   ))}
+                  <option value="custom">Custom Category...</option>
                 </select>
               </div>
 
-              {/* Icon Dropdown */}
+              {isCustomCategory && (
+                <div className="pt-2">
+                  <input
+                    type="text"
+                    name="category"
+                    required
+                    value={formData.category}
+                    onChange={handleChange}
+                    placeholder="Enter custom category name (e.g. Cloud & DevOps)"
+                    className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl w-full outline-none px-4 py-2.5 text-xs text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
+                  />
+                </div>
+              )}
+
+              {/* Icon Type Tabs */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Skill Icon</label>
-                <div className="flex gap-3 items-center">
-                  <select
-                    value={isCustom ? "custom" : formData.icon}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "custom") {
-                        setIsCustom(true);
-                        setFormData({ ...formData, icon: "" });
-                      } else {
-                        setIsCustom(false);
-                        setFormData({ ...formData, icon: val });
-                      }
-                    }}
-                    className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl flex-1 outline-none px-4 py-3 text-sm text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
+                <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Icon Type</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIconType("preset")}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition ${
+                      iconType === "preset"
+                        ? "bg-yellow-400 dark:bg-blue-600 text-gray-950 dark:text-white border-yellow-400 dark:border-blue-600"
+                        : "bg-gray-950 dark:bg-gray-50 border-gray-800 dark:border-gray-200 text-gray-400 dark:text-gray-600 hover:border-gray-750 dark:hover:border-gray-300"
+                    }`}
                   >
-                    {availableIcons.map((ic) => (
-                      <option key={ic} value={ic}>
-                        {ic}
-                      </option>
-                    ))}
-                    <option value="custom">Custom Icon...</option>
-                  </select>
-                  <div className="w-11 h-11 flex items-center justify-center bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl text-yellow-400 dark:text-blue-600 text-xl flex-shrink-0">
-                    {renderIconPreview(formData.icon)}
+                    Select/Custom Name
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIconType("upload")}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition ${
+                      iconType === "upload"
+                        ? "bg-yellow-400 dark:bg-blue-600 text-gray-950 dark:text-white border-yellow-400 dark:border-blue-600"
+                        : "bg-gray-950 dark:bg-gray-50 border-gray-800 dark:border-gray-200 text-gray-400 dark:text-gray-600 hover:border-gray-750 dark:hover:border-gray-300"
+                    }`}
+                  >
+                    Upload PNG/SVG Icon
+                  </button>
+                </div>
+              </div>
+
+              {iconType === "preset" ? (
+                /* Icon Dropdown & Text Entry */
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Skill Icon</label>
+                  <div className="flex gap-3 items-center">
+                    <select
+                      value={isCustom ? "custom" : formData.icon}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "custom") {
+                          setIsCustom(true);
+                          setFormData({ ...formData, icon: "" });
+                        } else {
+                          setIsCustom(false);
+                          setFormData({ ...formData, icon: val });
+                        }
+                      }}
+                      className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl flex-1 outline-none px-4 py-3 text-sm text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
+                    >
+                      {availableIcons.map((ic) => (
+                        <option key={ic} value={ic}>
+                          {ic}
+                        </option>
+                      ))}
+                      <option value="custom">Custom Icon...</option>
+                    </select>
+                    <div className="w-11 h-11 flex items-center justify-center bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl text-yellow-400 dark:text-blue-600 text-xl flex-shrink-0">
+                      {renderIconPreview(formData.icon)}
+                    </div>
+                  </div>
+
+                  {isCustom && (
+                    <div className="pt-2">
+                      <input
+                        type="text"
+                        name="icon"
+                        required
+                        value={formData.icon}
+                        onChange={handleChange}
+                        placeholder="Enter custom icon name (e.g. FaDocker)"
+                        className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl w-full outline-none px-4 py-2.5 text-xs text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
+                      />
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 pl-1">
+                        Type any mapped React-icon name (e.g. FaDocker, SiBootstrap, SiVue)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* File Upload Block */
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
+                      Upload Icon File
+                    </label>
+                    <div className="flex items-center gap-3 border border-gray-800 dark:border-gray-200 rounded-xl px-4 py-3 bg-gray-950 dark:bg-gray-50 hover:border-gray-700 dark:hover:border-gray-300 transition relative">
+                      <FaPlus className="text-gray-500" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleIconFileChange}
+                        className="opacity-0 absolute inset-0 cursor-pointer w-full"
+                      />
+                      <span className="text-xs text-gray-400 dark:text-gray-600 truncate">
+                        {iconFile ? iconFile.name : "Choose icon image/SVG..."}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-center pt-3">
+                    {iconPreview ? (
+                      <img
+                        src={iconPreview}
+                        alt="Icon Preview"
+                        className="w-12 h-12 object-contain bg-white dark:bg-gray-50 rounded-xl border border-gray-800 dark:border-gray-200 p-2 shadow"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 border-dashed rounded-xl flex items-center justify-center text-[10px] text-gray-500 dark:text-gray-400 text-center leading-tight">
+                        No Preview
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {isCustom && (
-                  <div className="pt-2">
-                    <input
-                      type="text"
-                      name="icon"
-                      required
-                      value={formData.icon}
-                      onChange={handleChange}
-                      placeholder="Enter custom icon name (e.g. FaDocker)"
-                      className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl w-full outline-none px-4 py-2.5 text-xs text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
-                    />
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 pl-1">
-                      Type any mapped React-icon name (e.g. FaDocker, SiBootstrap, SiVue)
-                    </p>
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Range slider removed as requested, default payload is sent to DB */}
 
