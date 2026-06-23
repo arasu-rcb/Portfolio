@@ -17,7 +17,7 @@ export const getSkills = async (req, res) => {
 // Create New Skill
 export const createSkill = async (req, res) => {
   try {
-    const { name, percentage, category } = req.body;
+    const { name, percentage, category, icon } = req.body;
 
     if (!name || percentage === undefined) {
       return res.status(400).json({ message: "Skill name and percentage are required" });
@@ -26,7 +26,8 @@ export const createSkill = async (req, res) => {
     const newSkill = new Skill({
       name,
       percentage: Number(percentage),
-      category: category || "Web Development"
+      category: category || "Web Development",
+      icon: icon || "FaTools"
     });
 
     await newSkill.save();
@@ -44,7 +45,7 @@ export const createSkill = async (req, res) => {
 export const updateSkill = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, percentage, category } = req.body;
+    const { name, percentage, category, icon } = req.body;
 
     const skill = await Skill.findById(id);
     if (!skill) {
@@ -54,6 +55,7 @@ export const updateSkill = async (req, res) => {
     if (name) skill.name = name;
     if (percentage !== undefined) skill.percentage = Number(percentage);
     if (category) skill.category = category;
+    if (icon !== undefined) skill.icon = icon;
 
     await skill.save();
     return res.status(200).json({ message: "Skill updated successfully", skill });

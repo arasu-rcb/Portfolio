@@ -41,6 +41,26 @@ const skillIconMap = {
   "Netlify": <SiNetlify className="text-cyan-300" />
 };
 
+const skillIconNameMap = {
+  FaNetworkWired: <FaNetworkWired className="text-blue-400" />,
+  FaServer: <FaServer className="text-indigo-400" />,
+  FaMicrochip: <FaMicrochip className="text-purple-400" />,
+  FaTools: <FaTools className="text-yellow-500" />,
+  FaShieldAlt: <FaShieldAlt className="text-red-500" />,
+  FaHtml5: <FaHtml5 className="text-orange-500" />,
+  FaCss3Alt: <FaCss3Alt className="text-blue-500" />,
+  FaReact: <FaReact className="text-cyan-400" />,
+  SiTailwindcss: <SiTailwindcss className="text-blue-400" />,
+  FaNodeJs: <FaNodeJs className="text-green-500" />,
+  SiMongodb: <SiMongodb className="text-green-600" />,
+  SiMysql: <SiMysql className="text-blue-600" />,
+  FaPython: <FaPython className="text-yellow-400" />,
+  FaJava: <FaJava className="text-red-600" />,
+  FaGithub: <FaGithub className="text-gray-400" />,
+  SiVercel: <SiVercel className="text-white dark:text-gray-900" />,
+  SiNetlify: <SiNetlify className="text-cyan-300" />
+};
+
 const Skills = () => {
   const sectionRef = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -168,7 +188,11 @@ const Skills = () => {
                   {catSkills.map((skill) => (
                     <Skill
                       key={skill._id}
-                      icon={skillIconMap[skill.name] || <FaTools className="text-yellow-500" />}
+                      icon={
+                        skillIconNameMap[skill.icon] ||
+                        skillIconMap[skill.name] ||
+                        <FaTools className="text-yellow-500" />
+                      }
                       name={skill.name}
                     />
                   ))}

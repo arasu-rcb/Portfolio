@@ -16,6 +16,11 @@ const skillSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: "Web Development" // Optional grouping helper matching frontend categories
+    },
+    icon: {
+      type: String,
+      required: false,
+      default: "FaTools"
     }
   },
   { timestamps: true }

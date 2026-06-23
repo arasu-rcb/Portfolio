@@ -1,6 +1,76 @@
 import React, { useState, useEffect } from "react";
 import API from "../utils/api";
-import { FaPlus, FaEdit, FaTrash, FaTimes, FaSave, FaBrain } from "react-icons/fa";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaTimes,
+  FaSave,
+  FaBrain,
+  FaNetworkWired,
+  FaServer,
+  FaMicrochip,
+  FaTools,
+  FaShieldAlt,
+  FaHtml5,
+  FaCss3Alt,
+  FaReact,
+  FaNodeJs,
+  FaPython,
+  FaJava,
+  FaGithub
+} from "react-icons/fa";
+import {
+  SiTailwindcss,
+  SiMongodb,
+  SiMysql,
+  SiVercel,
+  SiNetlify
+} from "react-icons/si";
+
+const availableIcons = [
+  "FaNetworkWired",
+  "FaServer",
+  "FaMicrochip",
+  "FaTools",
+  "FaShieldAlt",
+  "FaHtml5",
+  "FaCss3Alt",
+  "FaReact",
+  "SiTailwindcss",
+  "FaNodeJs",
+  "SiMongodb",
+  "SiMysql",
+  "FaPython",
+  "FaJava",
+  "FaGithub",
+  "SiVercel",
+  "SiNetlify"
+];
+
+const iconComponentMap = {
+  FaNetworkWired: <FaNetworkWired />,
+  FaServer: <FaServer />,
+  FaMicrochip: <FaMicrochip />,
+  FaTools: <FaTools />,
+  FaShieldAlt: <FaShieldAlt />,
+  FaHtml5: <FaHtml5 />,
+  FaCss3Alt: <FaCss3Alt />,
+  FaReact: <FaReact />,
+  SiTailwindcss: <SiTailwindcss />,
+  FaNodeJs: <FaNodeJs />,
+  SiMongodb: <SiMongodb />,
+  SiMysql: <SiMysql />,
+  FaPython: <FaPython />,
+  FaJava: <FaJava />,
+  FaGithub: <FaGithub />,
+  SiVercel: <SiVercel />,
+  SiNetlify: <SiNetlify />
+};
+
+const renderIconPreview = (iconName) => {
+  return iconComponentMap[iconName] || <FaTools />;
+};
 
 const SkillsEditor = () => {
   const [skills, setSkills] = useState([]);
@@ -14,7 +84,8 @@ const SkillsEditor = () => {
   const [formData, setFormData] = useState({
     name: "",
     percentage: 80,
-    category: "Web Development"
+    category: "Web Development",
+    icon: "FaTools"
   });
 
   const categories = [
@@ -46,7 +117,8 @@ const SkillsEditor = () => {
     setFormData({
       name: "",
       percentage: 80,
-      category: "Web Development"
+      category: "Web Development",
+      icon: "FaTools"
     });
     setShowModal(true);
   };
@@ -55,8 +127,9 @@ const SkillsEditor = () => {
     setEditId(skill._id);
     setFormData({
       name: skill.name || "",
-      percentage: skill.percentage || 0,
-      category: skill.category || "Web Development"
+      percentage: skill.percentage || 80,
+      category: skill.category || "Web Development",
+      icon: skill.icon || "FaTools"
     });
     setShowModal(true);
   };
@@ -167,11 +240,13 @@ const SkillsEditor = () => {
                       key={skill._id}
                       className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl p-4 flex justify-between items-center gap-4 hover:border-gray-750 dark:hover:border-gray-300 transition"
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center mb-1">
+                      <div className="flex-1 min-w-0 flex items-center gap-3">
+                        <div className="text-lg text-yellow-400 dark:text-blue-600 flex-shrink-0">
+                          {renderIconPreview(skill.icon)}
+                        </div>
+                        <div className="truncate">
                           <p className="text-sm font-semibold text-white dark:text-gray-800 truncate">{skill.name}</p>
                         </div>
-                        {/* Progress bar removed as requested */}
                       </div>
                       <div className="flex gap-1">
                         <button
@@ -244,6 +319,28 @@ const SkillsEditor = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Icon Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Skill Icon</label>
+                <div className="flex gap-3 items-center">
+                  <select
+                    name="icon"
+                    value={formData.icon}
+                    onChange={handleChange}
+                    className="bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl flex-1 outline-none px-4 py-3 text-sm text-gray-200 dark:text-gray-800 focus:border-yellow-400 dark:focus:border-blue-500 transition"
+                  >
+                    {availableIcons.map((ic) => (
+                      <option key={ic} value={ic}>
+                        {ic}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="w-11 h-11 flex items-center justify-center bg-gray-950 dark:bg-gray-50 border border-gray-800 dark:border-gray-200 rounded-xl text-yellow-400 dark:text-blue-600 text-xl flex-shrink-0">
+                    {renderIconPreview(formData.icon)}
+                  </div>
+                </div>
               </div>
 
               {/* Range slider removed as requested, default payload is sent to DB */}
