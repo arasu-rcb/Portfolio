@@ -178,7 +178,7 @@ const OtpVerification = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 dark:bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-gray-900 dark:bg-white border border-gray-800 dark:border-gray-200 rounded-2xl shadow-2xl p-8 space-y-6">
+      <div className="max-w-md w-full bg-gray-900 dark:bg-white border border-gray-800 dark:border-gray-200 rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6">
         
         {/* Navigation Link */}
         <button
@@ -218,7 +218,7 @@ const OtpVerification = () => {
 
         {/* OTP Entry fields */}
         <form onSubmit={handleVerify} className="space-y-6">
-          <div className="flex justify-between gap-2.5" onPaste={handlePaste}>
+          <div className="flex justify-between gap-1.5 sm:gap-2.5" onPaste={handlePaste}>
             {otp.map((data, index) => (
               <input
                 key={index}
@@ -228,7 +228,7 @@ const OtpVerification = () => {
                 value={data}
                 onChange={(e) => handleChange(e.target, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                className="w-12 h-14 text-center text-xl font-bold rounded-xl border bg-gray-950 dark:bg-gray-50 border-gray-800 dark:border-gray-300 text-white dark:text-gray-900 outline-none focus:border-yellow-400 dark:focus:border-blue-600 transition"
+                className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold rounded-xl border bg-gray-950 dark:bg-gray-50 border-gray-800 dark:border-gray-300 text-white dark:text-gray-900 outline-none focus:border-yellow-400 dark:focus:border-blue-600 transition"
               />
             ))}
           </div>

@@ -160,7 +160,7 @@ const About = () => {
                 href={aboutData.resumeUrl ? `https://arasuportfolio.onrender.com${aboutData.resumeUrl}` : resume}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-yellow-400 dark:bg-blue-600 text-gray-900 dark:text-white px-6 py-2.5 rounded-full font-semibold hover:scale-105 transition shadow-lg hover:bg-yellow-500 dark:hover:bg-blue-700"
+                className="w-fit flex items-center gap-2 bg-yellow-400 dark:bg-blue-600 text-gray-900 dark:text-white px-6 py-2.5 rounded-full font-semibold hover:scale-105 transition shadow-lg hover:bg-yellow-500 dark:hover:bg-blue-700"
               >
                 <FaFileAlt />
                 View Resume
