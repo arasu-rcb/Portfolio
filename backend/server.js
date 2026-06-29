@@ -2,8 +2,10 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import nodemailer from "nodemailer";
 import connectDB from "./config/db.js";
+import Asset from "./models/asset.js";
 
 import contactRoutes from "./routes/contactRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
@@ -26,6 +28,38 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Serve assets from database as a fallback for ephemeral storage (e.g. on Render)
+app.get("/uploads/:folder/:filename", async (req, res, next) => {
+  try {
+    const { folder, filename } = req.params;
+    const localPath = path.join(process.cwd(), "uploads", folder, filename);
+
+    // If file exists on local disk, serve it directly
+    if (fs.existsSync(localPath)) {
+      return res.sendFile(localPath);
+    }
+
+    // Try finding the file in MongoDB
+    const asset = await Asset.findOne({ filename });
+    if (asset) {
+      // Ensure local folder exists
+      const folderPath = path.dirname(localPath);
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true });
+      }
+      // Cache the file to local disk
+      fs.writeFileSync(localPath, asset.data);
+
+      // Serve the file
+      res.setHeader("Content-Type", asset.contentType);
+      return res.send(asset.data);
+    }
+  } catch (err) {
+    console.error(`[Asset Server Error] Failed to serve ${req.params.filename}:`, err.message);
+  }
+  next();
+});
 
 // Serve static uploads
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));

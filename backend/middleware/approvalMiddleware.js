@@ -1,5 +1,7 @@
 import crypto from "crypto";
+import fs from "fs";
 import PendingUpdate from "../models/pendingUpdate.js";
+import Asset from "../models/asset.js";
 import { sendApprovalMail } from "../utils/sendApprovalMail.js";
 
 /**
@@ -27,6 +29,20 @@ export const requestApproval = (modelName) => {
         path: `/uploads/${req.file.fieldname === "resume" ? "resume" : "images"}/${req.file.filename}`,
         fieldname: req.file.fieldname
       } : null;
+
+      // Persist the uploaded file to MongoDB Asset collection
+      if (req.file) {
+        const fileData = fs.readFileSync(req.file.path);
+        await Asset.findOneAndUpdate(
+          { filename: req.file.filename },
+          {
+            filename: req.file.filename,
+            contentType: req.file.mimetype,
+            data: fileData
+          },
+          { upsert: true }
+        );
+      }
 
       // Save request parameters into the database pending queue
       const pending = new PendingUpdate({

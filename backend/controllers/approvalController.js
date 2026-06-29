@@ -4,6 +4,7 @@ import Project from "../models/project.js";
 import Skill from "../models/skill.js";
 import Experience from "../models/experience.js";
 import Education from "../models/education.js";
+import Asset from "../models/asset.js";
 import fs from "fs";
 import path from "path";
 
@@ -61,7 +62,7 @@ export const approveUpdate = async (req, res) => {
         const fieldName = fileDetails.fieldname; // "profileImage" or "resume"
         const targetField = fieldName === "resume" ? "resumeUrl" : "profileImage";
         
-        // Delete old asset from disk
+        // Delete old asset from disk & database
         if (about[targetField]) {
           const oldPath = path.join(process.cwd(), about[targetField]);
           if (fs.existsSync(oldPath)) {
@@ -71,6 +72,8 @@ export const approveUpdate = async (req, res) => {
               console.error("[Approval] Old file delete failed:", err.message);
             }
           }
+          const oldFilename = about[targetField].split("/").pop();
+          await Asset.deleteOne({ filename: oldFilename });
         }
         about[targetField] = fileDetails.path;
       } else {
@@ -97,6 +100,8 @@ export const approveUpdate = async (req, res) => {
               if (fs.existsSync(oldPath)) {
                 try { fs.unlinkSync(oldPath); } catch (e) {}
               }
+              const oldFilename = project.image.split("/").pop();
+              await Asset.deleteOne({ filename: oldFilename });
             }
             project.image = fileDetails.path;
           }
@@ -112,6 +117,8 @@ export const approveUpdate = async (req, res) => {
             if (fs.existsSync(oldPath)) {
               try { fs.unlinkSync(oldPath); } catch (e) {}
             }
+            const oldFilename = project.image.split("/").pop();
+            await Asset.deleteOne({ filename: oldFilename });
           }
           await Project.findByIdAndDelete(targetId);
         }
@@ -145,6 +152,8 @@ export const approveUpdate = async (req, res) => {
               if (fs.existsSync(oldPath)) {
                 try { fs.unlinkSync(oldPath); } catch (e) {}
               }
+              const oldFilename = skill.icon.split("/").pop();
+              await Asset.deleteOne({ filename: oldFilename });
             }
             skill.icon = fileDetails.path;
           }
@@ -160,6 +169,8 @@ export const approveUpdate = async (req, res) => {
             if (fs.existsSync(oldPath)) {
               try { fs.unlinkSync(oldPath); } catch (e) {}
             }
+            const oldFilename = skill.icon.split("/").pop();
+            await Asset.deleteOne({ filename: oldFilename });
           }
           await Skill.findByIdAndDelete(targetId);
         }
@@ -183,6 +194,8 @@ export const approveUpdate = async (req, res) => {
               if (fs.existsSync(oldPath)) {
                 try { fs.unlinkSync(oldPath); } catch (e) {}
               }
+              const oldFilename = exp.certificateUrl.split("/").pop();
+              await Asset.deleteOne({ filename: oldFilename });
             }
             exp.certificateUrl = fileDetails.path;
           }
@@ -198,6 +211,8 @@ export const approveUpdate = async (req, res) => {
             if (fs.existsSync(oldPath)) {
               try { fs.unlinkSync(oldPath); } catch (e) {}
             }
+            const oldFilename = exp.certificateUrl.split("/").pop();
+            await Asset.deleteOne({ filename: oldFilename });
           }
           await Experience.findByIdAndDelete(targetId);
         }
@@ -269,7 +284,7 @@ export const rejectUpdate = async (req, res) => {
       return res.status(404).send("<h1>Not Found</h1><p>This update request was already processed or does not exist.</p>");
     }
 
-    // Delete newly uploaded temp file if one was created
+    // Delete newly uploaded temp file if one was created, and remove from Asset DB
     if (pending.fileDetails) {
       const filePath = path.join(process.cwd(), pending.fileDetails.path);
       if (fs.existsSync(filePath)) {
@@ -279,6 +294,7 @@ export const rejectUpdate = async (req, res) => {
           console.error("[Rejection] File delete failed:", err.message);
         }
       }
+      await Asset.deleteOne({ filename: pending.fileDetails.filename });
     }
 
     await PendingUpdate.deleteOne({ _id: pending._id });
