@@ -84,9 +84,7 @@ export const sendOtpMail = async (toEmail, otpCode) => {
       host,
       port: transportPort,
       secure: transportPort === 465,
-      requireTLS: transportPort === 587,
       auth: { user, pass },
-      tls: { rejectUnauthorized: false },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000,
@@ -142,12 +140,10 @@ export const sendOtpMail = async (toEmail, otpCode) => {
     console.error("[OTP Mail] Primary SMTP error:", primaryError.message);
     const primaryMessage = primaryError?.message || "Unknown SMTP error";
 
-    if (host.includes("gmail.com") && port === 587) {
+     if (host.includes("gmail.com") && port === 587) {
       console.log("[OTP Mail] Fallback: Attempting port 465...");
       try {
         const fallbackTransport = buildTransport(465);
-        fallbackTransport.secure = true;
-        fallbackTransport.requireTLS = false;
         const fallbackInfo = await trySend(fallbackTransport);
         console.log(`[OTP Mail] Fallback via port 465 succeeded. Message ID: ${fallbackInfo.messageId}`);
         return { success: true };

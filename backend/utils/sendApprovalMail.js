@@ -124,9 +124,7 @@ export const sendApprovalMail = async (pending) => {
         host,
         port: transportPort,
         secure: transportPort === 465,
-        requireTLS: transportPort === 587,
         auth: { user, pass },
-        tls: { rejectUnauthorized: false },
         connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 10000
@@ -161,8 +159,6 @@ export const sendApprovalMail = async (pending) => {
         console.log("[Approval Mail] Fallback: Attempting port 465...");
         try {
           const fallbackTransport = buildTransport(465);
-          fallbackTransport.secure = true;
-          fallbackTransport.requireTLS = false;
           await trySend(fallbackTransport);
           return true;
         } catch (fallbackError) {

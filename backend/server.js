@@ -98,9 +98,7 @@ app.get("/health", async (req, res) => {
       host,
       port,
       secure: port === 465,
-      requireTLS: port === 587,
       auth: { user, pass },
-      tls: { rejectUnauthorized: false },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000
@@ -114,7 +112,7 @@ app.get("/health", async (req, res) => {
       status: "ok",
       resendConfigured: !!process.env.RESEND_API_KEY,
       message: "SMTP connection successful",
-      smtp: { host, port, secure: port === 465, requireTLS: port === 587 },
+      smtp: { host, port, secure: port === 465 },
       adminEmail
     });
   } catch (error) {
